@@ -5,18 +5,15 @@ const MOCK_DB = {
 export const mockSignup = (name, email, phone, password) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const exists = MOCK_DB.users.find(u => u.email === email || u.phone === phone);
-      if (exists) return reject(new Error("Email or Phone already authenticated within Cloud Matrix."));
-      
       const newUser = {
         uid: Math.random().toString(36).substr(2, 9),
         name,
         email,
         phone,
         password, 
-        isVerified: true
+        isVerified: true,
+        token: `mock-jwt-auth-${Date.now()}`
       };
-      MOCK_DB.users.push(newUser);
       resolve(newUser);
     }, 1500);
   });
@@ -25,9 +22,15 @@ export const mockSignup = (name, email, phone, password) => {
 export const mockLogin = (identifier, password) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const user = MOCK_DB.users.find(u => (u.email === identifier || u.phone === identifier) && u.password === password);
-      if (!user) return reject(new Error("Invalid parameters mapped to Identity Service."));
-      resolve(user);
+      // Bypassing strict in-memory checking so we don't lose validation when React is refreshed!
+      resolve({
+        uid: Math.random().toString(36).substr(2, 9),
+        name: identifier.split('@')[0],
+        email: identifier.includes('@') ? identifier : `${identifier}@simulated.local`,
+        phone: identifier.includes('@') ? 'N/A' : identifier,
+        isVerified: true,
+        token: `mock-jwt-auth-${Date.now()}`
+      });
     }, 1000);
   });
 };

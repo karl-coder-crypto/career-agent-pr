@@ -441,7 +441,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
     if (cache.otp !== otpInput) return res.status(400).json({ error: "Sequence mismatch." });
     
     delete otpStore[phone];
-    res.json({ success: true });
+    res.json({ success: true, token: `aegis-otp-cloud-token-${Date.now()}` });
 });
 
 // React Catch-all route to serve the SPA (Middleware approach for Express v5)

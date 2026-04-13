@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,6 +12,14 @@ function AuthGateway() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.error) {
+      setError(location.state.error);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
   
   const [otpMode, setOtpMode] = useState(false);
   const [otpInput, setOtpInput] = useState('');
@@ -58,9 +66,9 @@ function AuthGateway() {
       if (!resp.ok) throw new Error(data.error || "Verification API error.");
       
       if (isLogin) {
-        await login(formData.phone, 'phone-bypass');
+        await login(formData.phone, 'phone-bypass', data.token);
       } else {
-        await signup(formData.name, 'phone@simulated.local', formData.phone, 'phone-bypass');
+        await signup(formData.name, 'phone@simulated.local', formData.phone, 'phone-bypass', data.token);
       }
       navigate('/dsa-sniper');
     } catch (err) {

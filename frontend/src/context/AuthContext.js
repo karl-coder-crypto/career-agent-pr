@@ -23,15 +23,17 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = async (identifier, password) => {
+  const login = async (identifier, password, backendToken) => {
     const user = await mockLogin(identifier, password);
+    if (backendToken) user.token = backendToken;
     setCurrentUser(user);
     localStorage.setItem('mock-user', JSON.stringify(user));
     await syncLocalToCloud(user.uid);
   };
 
-  const signup = async (name, email, phone, password) => {
+  const signup = async (name, email, phone, password, backendToken) => {
     const user = await mockSignup(name, email, phone, password);
+    if (backendToken) user.token = backendToken;
     setCurrentUser(user);
     localStorage.setItem('mock-user', JSON.stringify(user));
     await syncLocalToCloud(user.uid);
