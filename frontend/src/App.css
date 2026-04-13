@@ -51,6 +51,10 @@ body {
   transition: background 0.5s ease, color 0.5s ease;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
 .App {
   min-height: 100vh;
   display: flex;
@@ -473,9 +477,9 @@ input:focus, textarea:focus {
 .sidebar {
   width: 260px;
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--blur-amt));
-  -webkit-backdrop-filter: blur(var(--blur-amt));
-  border-right: 1px solid var(--glass-border);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   padding: 30px 20px;
@@ -512,11 +516,18 @@ input:focus, textarea:focus {
   transition: all 0.3s ease;
 }
 
-.nav-link:hover, .nav-link.active {
-  background: var(--accent-primary);
-  color: #fff;
-  box-shadow: 0 5px 15px var(--hover-glow);
-  transform: translateX(5px);
+.nav-link:hover {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+  transform: translateX(2px);
+  color: #00d4ff;
+}
+
+.nav-link.active {
+  background: rgba(0, 212, 255, 0.15);
+  color: #00d4ff;
+  border-left: 3px solid #00d4ff;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
 }
 
 .hamburger {

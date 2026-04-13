@@ -12,9 +12,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('mock-user');
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('mock-user');
+      if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+    } catch (err) {
+      console.error('State Persistence Error:', err);
     }
     setLoading(false);
   }, []);
