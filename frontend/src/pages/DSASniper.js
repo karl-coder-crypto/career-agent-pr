@@ -77,12 +77,12 @@ function DSASniper({ API_URL }) {
   };
 
   const generateLink = (type, prob) => {
-    if (type === 'solve' && prob.leetcode_slug) {
-      return `https://leetcode.com/problems/${prob.leetcode_slug}/`;
+    if (type === 'solve' && prob.leetcode_link) {
+      return prob.leetcode_link;
     }
-    const encoded = encodeURIComponent(prob.title);
+    const encoded = encodeURIComponent(prob.title || 'Two Sum');
     if (type === 'solve') return `https://leetcode.com/problemset/all/?search=${encoded}`;
-    if (type === 'discuss') return `https://leetcode.com/discuss/interview-question?currentPage=1&orderBy=hot&query=${encoded}`;
+    if (type === 'discuss') return `https://www.youtube.com/results?search_query=${encoded}+leetcode+solution`;
     return '#';
   };
 

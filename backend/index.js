@@ -375,19 +375,25 @@ app.post('/api/ai/fetch-dsa', async (req, res) => {
                 model: "gemini-2.5-flash",
                 generationConfig: { responseMimeType: "application/json" }
             });
-            const systemPrompt = `You are an expert technical interviewer. Return a strict JSON array of exactly ${count} real Leetcode problems currently frequently asked at ${company} for topic ${topic}. Array properties: title (string), difficulty (Easy, Medium, Hard), topic (string), company_context (short string), leetcode_slug (string). Do not hallucinate fictitious problems. Keep names matching LeetCode structure accurately.`;
+            const systemPrompt = `You are an expert technical interviewer. Return EXACTLY a raw JSON array of exactly ${count} real Leetcode problems frequently asked at ${company} under the topic ${topic}. Array properties MUST be: title (string, real problem name), difficulty (Easy, Medium, Hard), topic (string), company_context (short string), leetcode_link (string, exact URL like https://leetcode.com/problems/two-sum/). Do not use markdown backticks. Output strictly valid JSON.`;
             const result = await model.generateContent(systemPrompt);
-            return res.json(JSON.parse(result.response.text()));
+            let responseText = result.response.text();
+            responseText = responseText.replace(/```json/gi, '').replace(/```/gi, '').trim();
+            return res.json(JSON.parse(responseText));
         } catch (error) {}
     }
     await new Promise(r => setTimeout(r, 1500));
-    res.json(Array.from({length: count}, (_, i) => ({
-        title: `Dummy Problem ${i+1}`, 
-        difficulty: "Medium",
-        topic: topic,
-        company_context: `Frequently asked at ${company}`,
-        leetcode_slug: "two-sum"
-    })));
+    const fallbacks = [
+        {title: "Two Sum", difficulty: "Easy", topic: topic, company_context: `Extremely Common at ${company}`, leetcode_link: "https://leetcode.com/problems/two-sum/"},
+        {title: "Longest Substring Without Repeating Characters", difficulty: "Medium", topic: topic, company_context: `Frequent pattern at ${company}`, leetcode_link: "https://leetcode.com/problems/longest-substring-without-repeating-characters/"},
+        {title: "Merge Intervals", difficulty: "Medium", topic: topic, company_context: `Must know for ${company}`, leetcode_link: "https://leetcode.com/problems/merge-intervals/"},
+        {title: "Trapping Rain Water", difficulty: "Hard", topic: topic, company_context: `Classic hard logic at ${company}`, leetcode_link: "https://leetcode.com/problems/trapping-rain-water/"}
+    ];
+    let toReturn = [];
+    while(toReturn.length < count) {
+        toReturn = toReturn.concat(fallbacks);
+    }
+    res.json(toReturn.slice(0, count));
 });
 
 app.post('/api/explain-dsa', async (req, res) => {
@@ -396,13 +402,13 @@ app.post('/api/explain-dsa', async (req, res) => {
         try {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-            const systemPrompt = `Explain the intuition and Time/Space complexity to solve the standard Leetcode problem: "${problemName}". DO NOT output any code. Use Hinglish strictly. Be concise, act like a senior tech lead giving you a hint, highlight logic blocks clearly.`;
+            const systemPrompt = `Explain the logic for the LeetCode problem "${problemName}". Structure the response clearly with Intution, Approach, and Time/Space Complexity. Focus on the core algorithmic steps. DO NOT use markdown bolding/asterisks (**). Just clean plain-text formatting with clear paragraph breaks. Keep it short but highly precise for a senior dev.`;
             const result = await model.generateContent(systemPrompt);
             return res.json({ reply: result.response.text() });
         } catch (error) {}
     }
     await new Promise(r => setTimeout(r, 1500));
-    res.json({ reply: `Bhai dekho, ${problemName} mein brute force toh har koi karega. Pattern pe dhyaan do. Data tracking map lagao jisse Time Complexity O(N) aaye rather than O(N^2). Hamesha space-time tradeoff ko balance rakho.` });
+    res.json({ reply: `Intuition:\nIdentify patterns like two pointers or hashing.\n\nApproach:\nAvoid brute force. Instead, maintain a running state to process elements in a single pass.\n\nComplexity:\nTime: O(N)\nSpace: O(N)` });
 });
 
 // The Skill Architect Pipeline
