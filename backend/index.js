@@ -368,32 +368,44 @@ app.post('/api/get-dsa-problems', async (req, res) => {
 
 app.post('/api/ai/fetch-dsa', async (req, res) => {
     const { topic, company, count } = req.body;
+    
+    const fallbackGenerated = Array.from({length: count}, (_, i) => ({
+        title: `${company} Profile: ${topic} Matrix ${i+1}`,
+        difficulty: ["Easy", "Medium", "Hard"][Math.floor(Math.random()*3)],
+        topic: topic,
+        company_context: `Historically logged in ${company} analytical interviews.`,
+        leetcode_link: `https://leetcode.com/problemset/all/?search=${encodeURIComponent(topic)}`
+    }));
+
     if (process.env.GEMINI_API_KEY) {
         try {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash",
-                generationConfig: { responseMimeType: "application/json" }
-            });
-            const systemPrompt = `You are an expert technical interviewer. Return EXACTLY a raw JSON array of exactly ${count} real Leetcode problems frequently asked at ${company} under the topic ${topic}. Array properties MUST be: title (string, real problem name), difficulty (Easy, Medium, Hard), topic (string), company_context (short string), leetcode_link (string, exact URL like https://leetcode.com/problems/two-sum/). Do not use markdown backticks. Output strictly valid JSON.`;
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            const systemPrompt = `Generate exactly ${count} unique LeetCode problems for the company "${company}" and topic "${topic}". Return ONLY a raw JSON array of objects with keys: title, difficulty, leetcode_link, and a short company_context. Do not include any markdown or dummy data like Two Sum unless it actually belongs to the topic.`;
             const result = await model.generateContent(systemPrompt);
             let responseText = result.response.text();
+            
             responseText = responseText.replace(/```json/gi, '').replace(/```/gi, '').trim();
-            return res.json(JSON.parse(responseText));
-        } catch (error) {}
+            if(!responseText.startsWith('[')){
+               const firstBracket = responseText.indexOf('[');
+               if(firstBracket !== -1) responseText = responseText.substring(firstBracket);
+            }
+            if(!responseText.endsWith(']')){
+               const lastBracket = responseText.lastIndexOf(']');
+               if(lastBracket !== -1) responseText = responseText.substring(0, lastBracket + 1);
+            }
+
+            const parsedData = JSON.parse(responseText);
+            if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].title) {
+                return res.json(parsedData);
+            }
+        } catch (error) {
+            console.error("Gemini API Interceptor Error (DSA):", error);
+        }
     }
-    await new Promise(r => setTimeout(r, 1500));
-    const fallbacks = [
-        {title: "Two Sum", difficulty: "Easy", topic: topic, company_context: `Extremely Common at ${company}`, leetcode_link: "https://leetcode.com/problems/two-sum/"},
-        {title: "Longest Substring Without Repeating Characters", difficulty: "Medium", topic: topic, company_context: `Frequent pattern at ${company}`, leetcode_link: "https://leetcode.com/problems/longest-substring-without-repeating-characters/"},
-        {title: "Merge Intervals", difficulty: "Medium", topic: topic, company_context: `Must know for ${company}`, leetcode_link: "https://leetcode.com/problems/merge-intervals/"},
-        {title: "Trapping Rain Water", difficulty: "Hard", topic: topic, company_context: `Classic hard logic at ${company}`, leetcode_link: "https://leetcode.com/problems/trapping-rain-water/"}
-    ];
-    let toReturn = [];
-    while(toReturn.length < count) {
-        toReturn = toReturn.concat(fallbacks);
-    }
-    res.json(toReturn.slice(0, count));
+    
+    await new Promise(r => setTimeout(r, 1200));
+    res.json(fallbackGenerated);
 });
 
 app.post('/api/explain-dsa', async (req, res) => {

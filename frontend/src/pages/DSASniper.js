@@ -127,18 +127,9 @@ function DSASniper({ API_URL }) {
         </button>
       </div>
 
-      <div className="dsa-grid" style={{ minHeight: '200px' }}>
+      <div className="dsa-grid" style={{ minHeight: '200px', position: 'relative' }}>
         <AnimatePresence mode="wait">
-          {loading ? (
-             <motion.p 
-               key="loading"
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-               className="processing-text" 
-               style={{ textAlign: 'center', width: '100%', padding: '20px', color: 'var(--accent-primary)' }}
-             >
-               Accessing Gemini proprietary problem datasets...
-             </motion.p> 
-          ) : problems.length === 0 ? (
+          {problems.length === 0 && !loading ? (
              <motion.p 
                key="empty"
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -146,7 +137,7 @@ function DSASniper({ API_URL }) {
              >
                Awaiting search query configuration.
              </motion.p>
-          ) : (
+          ) : problems.length > 0 ? (
             <motion.div 
                key="results"
                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
@@ -192,8 +183,14 @@ function DSASniper({ API_URL }) {
                 </AnimatePresence>
               </div>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
+        
+        {loading && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(5,5,8,0.6)', backdropFilter: 'blur(8px)', zIndex: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '16px', border: '1px solid var(--accent-primary)' }}>
+               <p className="processing-text" style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', fontWeight: 'bold', fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '1px' }}>Scanning Aegis Databases...</p>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
