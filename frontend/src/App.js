@@ -14,6 +14,24 @@ import DSASniper from './pages/DSASniper';
 import SkillArchitect from './pages/SkillArchitect';
 import './App.css';
 
+const TypewriterText = ({ text, formatFn, onDone }) => {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (index < text.length) {
+      const timer = setTimeout(() => setIndex(prev => prev + 1), 15);
+      return () => clearTimeout(timer);
+    } else if (onDone) {
+      onDone();
+    }
+  }, [index, text, onDone]);
+  
+  return index < text.length ? (
+      <span style={{ whiteSpace: 'pre-wrap' }}>{text.substring(0, index)}</span>
+  ) : (
+      <span dangerouslySetInnerHTML={formatFn(text)} />
+  );
+};
+
 function App() {
   const [theme, setTheme] = useState('dark');
   const [bootPhase, setBootPhase] = useState(0);
@@ -26,7 +44,7 @@ function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [chatInput, setChatInput] = useState('');
-  const [guideMessages, setGuideMessages] = useState([{text: "Namaste bhai! Main tera guide Aegis. Bhol kya explore karna hai tujhe aajj?", sender: "bot"}]);
+  const [guideMessages, setGuideMessages] = useState([{text: "Greetings. I am JARVIS, your advanced AI Assistant. How may I be of assistance today?", sender: "bot"}]);
   const [isTyping, setIsTyping] = useState(false);
 
   const chatRef = useRef(null);
@@ -37,7 +55,7 @@ function App() {
     'v1.0.4 Booting...',
     'Connecting Neural Link...',
     'Fetching Job Nodes...',
-    'Aegis Protocol Online.'
+    'JARVIS Protocol Online.'
   ];
 
   useEffect(() => {
@@ -84,10 +102,10 @@ function App() {
       });
       const data = await response.json();
       if (response.ok) {
-        setGuideMessages(prev => [...prev, { text: data.reply, sender: 'bot' }]);
+        setGuideMessages(prev => [...prev, { text: data.reply, sender: 'bot', isNew: true }]);
       }
     } catch (err) {
-      setGuideMessages(prev => [...prev, { text: "Network error fetching Aegis guidance.", sender: 'bot' }]);
+      setGuideMessages(prev => [...prev, { text: "Network error fetching JARVIS neural responses.", sender: 'bot', isNew: true }]);
     }
     setIsTyping(false);
   };
@@ -200,36 +218,43 @@ function App() {
           </svg>
 
           {isChatOpen && (
-            <div ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()}>
-              <div className="close-btn" onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }}>&times;</div>
-              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '5px'}}>Aegis Guide</h4>
-              <div className="guide-messages-container">
+            <div ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'rgba(0, 20, 50, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid #00FFFF', boxShadow: '0 0 40px rgba(0, 255, 255, 0.3)', borderRadius: '16px' }}>
+              <div className="close-btn" onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: '#00FFFF', top: '15px', right: '20px' }}>&times;</div>
+              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px', color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '2px', textTransform: 'uppercase' }}>JARVIS</h4>
+              <div className="guide-messages-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px' }}>
                 {guideMessages.map((msg, i) => (
-                  <div key={i} className={`message-wrapper ${msg.sender}`}>
+                  <div key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
                     <div 
                       className={`message-bubble guide ${msg.sender}`} 
-                      dangerouslySetInnerHTML={formatTextWithLinks(msg.text)} 
-                    />
+                      style={{ background: msg.sender === 'user' ? 'rgba(0, 255, 255, 0.15)' : 'rgba(0,0,0,0.3)', border: msg.sender === 'user' ? '1px solid #00FFFF' : '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '12px 16px', borderRadius: '12px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.9rem', lineHeight: '1.5' }}
+                    >
+                      {msg.sender === 'bot' && msg.isNew ? (
+                         <TypewriterText text={msg.text} formatFn={formatTextWithLinks} onDone={() => { msg.isNew = false; }} />
+                      ) : (
+                         <span dangerouslySetInnerHTML={formatTextWithLinks(msg.text)} />
+                      )}
+                    </div>
                   </div>
                 ))}
                 {isTyping && (
-                  <div className="message-wrapper bot">
-                    <div className="message-bubble guide bot typing-indicator">
-                      <span></span><span></span><span></span>
+                  <div className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 16px', borderRadius: '12px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.85rem', fontWeight: 'bold', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="spinner" style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Processing...
                     </div>
                   </div>
                 )}
                 <div ref={guideEndRef} />
               </div>
-              <div className="chat-input-area guide">
+              <div className="chat-input-area guide" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
-                  placeholder="Ask Aegis..."
+                  placeholder="Ask JARVIS..."
                   disabled={isTyping}
+                  style={{ flexGrow: 1, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,255,0.4)', color: '#fff', padding: '12px', borderRadius: '8px', fontFamily: '"Space Grotesk", sans-serif' }}
                 />
-                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn">Send</button>
+                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 18px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}>SEND</button>
               </div>
             </div>
           )}

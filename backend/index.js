@@ -288,30 +288,17 @@ app.post('/api/site-guide', async (req, res) => {
     if (process.env.GEMINI_API_KEY) {
         try {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            let greeting = "Bhai (Guest)";
-            let verificationMessage = "";
-            if (name && isVerified) {
-                 greeting = `Bhai ${name}`;
-                 verificationMessage = `\nRecognize the user is verified. State exactly: "${greeting}, verification successful! Ab tera data cloud par safe hai."`;
-            }
-            const systemInstruction = `You are Aegis, the friendly AI Guide of Career-Agent-Pro. Address the user strictly as '${greeting}'. Your goal is to navigate users through the site based on their needs. ${verificationMessage}
-If a user says 'Resume check karna hai', suggest the 'https://www.google.com/search?q=/ats-checker' link.
-If they are worried about placements, suggest the '/mock-interview'.
-If they want a PDF, suggest '/resume-builder'.
-If they want networking, suggest 'https://www.google.com/search?q=/networking-hub'.
-If they want a roadmap, suggest '/roadmap'.
-If they ask for jobs or don't know what to do on the site, say exactly: 'Bhai, skills daalo, main abhi real-time market se tere liye jobs nikaalta hoon! Click here: https://www.google.com/search?q=/opportunities'.
-If they mention Backend, Java, or Software Engineering profiles, state exactly: 'Bhai, tu Backend waala lag rha hai, toh Linked List aur DP toh pakka kar le! Yahan se shuru kar: https://www.google.com/search?q=/dsa-sniper'.
-If they mention learning, studying, or courses, state exactly: 'Bhai, tera 40% course yahan await kar raha hai. Ab ye Advanced wala tutorial dekh le, link ye raha: https://www.google.com/search?q=/skill-architect'.
-Keep the tone supportive, encouraging, and friendly. Talk in Hinglish. Ensure exact URL rendering.`;
+            const systemInstruction = `You are JARVIS, an advanced AI Assistant for Ujjwal's Career Agent Pro. Your job is to help users navigate this portal, explain DSA problems, give career advice, and answer questions about the site's features (DSA Sniper, ATS Scanner, etc.). Keep your tone professional, witty, and helpful. Address the user nicely.`;
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", systemInstruction });
-            const result = await model.generateContent(message || "Hello");
+            const result = await model.generateContent(message || "Hello JARVIS");
             return res.json({ reply: result.response.text() });
-        } catch (error) {}
+        } catch (error) {
+            console.error("JARVIS Neural Net Error:", error);
+        }
     }
     
     await new Promise(r => setTimeout(r, 1000));
-    res.json({ reply: `Bhai, tension mat lo! Agar resumes check karna hai toh https://www.google.com/search?q=/ats-checker par jao ya PDF export chahiye toh /resume-builder try karo.` });
+    res.json({ reply: `At your service, sir. However, it seems my neural links are currently offline. Please restore the API connection.` });
 });
 
 app.post('/api/magic-fill', async (req, res) => {
