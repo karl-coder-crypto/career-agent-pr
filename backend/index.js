@@ -401,7 +401,7 @@ app.post('/api/networking/fetch-profiles', async (req, res) => {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const systemPrompt = `Find top real LinkedIn profile slugs for ${role} at ${company} with ${experience} experience. Return ONLY a JSON array with exact properties: "name", "current_role", "profile_url" (a valid linkedin URL formatting similar to https://www.linkedin.com/in/slug), and "match_score" (e.g. "98%"). If data is unavailable, return an empty array [].`;
+        const systemPrompt = `You are a Professional Networking Scout. For the role "${role}" at "${company}", find 5 REALISTIC LinkedIn profile examples. Return ONLY a JSON array. Each object MUST have: "name", "current_role" (Exact title), "match_score" (80-99), and "profile_url". For "profile_url", generate a valid search-based link like: https://www.google.com/search?q=https://www.linkedin.com/search/results/people/%3Fkeywords%3D${role}%20${company}. If data is unavailable, return an empty array [].`;
         const result = await model.generateContent(systemPrompt);
         let responseText = result.response.text();
         
@@ -414,6 +414,7 @@ app.post('/api/networking/fetch-profiles', async (req, res) => {
 
         let parsedData = JSON.parse(responseText);
         if (Array.isArray(parsedData)) {
+            parsedData = parsedData.filter(profile => profile.profile_url && profile.profile_url !== "undefined");
             return res.json(parsedData);
         }
     } catch (error) {
