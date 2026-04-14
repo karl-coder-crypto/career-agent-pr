@@ -369,35 +369,36 @@ app.post('/api/get-dsa-problems', async (req, res) => {
 app.post('/api/ai/fetch-dsa', async (req, res) => {
     const { topic, company, count } = req.body;
     
-    if (process.env.GEMINI_API_KEY) {
-        try {
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-            const systemPrompt = `Act as a Technical Interview Expert. For the company "${company}" and topic "${topic}", provide exactly ${count} REAL LeetCode problems. Return ONLY a JSON array. Each object must have: "title" (Official LeetCode name), "difficulty", "leetcode_link" (The actual direct URL), and "company_context" (Why this was asked). If data is unavailable, return an empty array [].`;
-            const result = await model.generateContent(systemPrompt);
-            let responseText = result.response.text();
-            
-            responseText = responseText.replace(/```json/gi, '').replace(/```/gi, '').trim();
-            if(!responseText.startsWith('[')){
-               const firstBracket = responseText.indexOf('[');
-               if(firstBracket !== -1) responseText = responseText.substring(firstBracket);
-            }
-            if(!responseText.endsWith(']')){
-               const lastBracket = responseText.lastIndexOf(']');
-               if(lastBracket !== -1) responseText = responseText.substring(0, lastBracket + 1);
-            }
+    if (!process.env.GEMINI_API_KEY) {
+        return res.status(401).json({ error: "API Key Missing" });
+    }
 
-            let parsedData = JSON.parse(responseText);
-            if (Array.isArray(parsedData)) {
-                parsedData = parsedData.filter(prob => {
-                    const t = prob.title ? prob.title.toLowerCase() : "";
-                    return !t.includes('matrix') && !t.includes('profile');
-                });
-                return res.json(parsedData);
-            }
-        } catch (error) {
-            console.error("Gemini API Interceptor Error (DSA):", error);
+    try {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const systemPrompt = `Act as a Technical Interview Expert. For the company "${company}" and topic "${topic}", provide exactly ${count} REAL LeetCode problems. Return ONLY a JSON array. Each object must have: "title" (Official LeetCode name), "difficulty", "leetcode_link" (The actual direct URL), and "company_context" (Why this was asked). If data is unavailable, return an empty array [].`;
+        const result = await model.generateContent(systemPrompt);
+        let responseText = result.response.text();
+        
+        console.log("RAW GEMINI RESPONSE (DSA):", responseText);
+
+        const match = responseText.match(/\[.*\]/s);
+        if (match) {
+            responseText = match[0];
+        } else {
+            return res.json([]);
         }
+
+        let parsedData = JSON.parse(responseText);
+        if (Array.isArray(parsedData)) {
+            parsedData = parsedData.filter(prob => {
+                const t = prob.title ? prob.title.toLowerCase() : "";
+                return !t.includes('matrix') && !t.includes('profile');
+            });
+            return res.json(parsedData);
+        }
+    } catch (error) {
+        console.error("Gemini API Interceptor Error (DSA):", error);
     }
     
     res.json([]);

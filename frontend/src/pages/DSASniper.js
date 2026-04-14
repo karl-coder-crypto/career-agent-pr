@@ -30,6 +30,7 @@ function DSASniper({ API_URL }) {
   const [loading, setLoading] = useState(false);
   const [explanation, setExplanation] = useState(null);
   const [loadingExplain, setLoadingExplain] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('dsa-names', JSON.stringify(completed));
@@ -43,16 +44,24 @@ function DSASniper({ API_URL }) {
 
   const handleSearch = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch(`${API_URL}/api/ai/fetch-dsa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, company, count: problemCount })
       });
+      if (response.status === 401) {
+        const errData = await response.json();
+        setError(errData.error || "API Key Missing");
+        setProblems([]);
+        return;
+      }
       const data = await response.json();
       setProblems(Array.isArray(data) ? data : []);
     } catch (err) {
       setProblems([]);
+      setError("Network Offline");
     } finally {
       setLoading(false);
     }
@@ -122,21 +131,33 @@ function DSASniper({ API_URL }) {
             style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
           />
         </div>
-        <button onClick={handleSearch} className="action-btn neon-glow-btn" disabled={loading} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
-          {loading ? 'Fetching JSON Matrices...' : 'Deploy Sniper Search'}
+        <button onClick={handleSearch} className="action-btn neon-glow-btn" disabled={loading} style={{ alignSelf: 'flex-end', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {loading ? <><span style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Fetching JSON Matrices...</> : 'Deploy Sniper Search'}
         </button>
       </div>
 
       <div className="dsa-grid" style={{ minHeight: '200px', position: 'relative' }}>
         <AnimatePresence mode="wait">
-          {problems.length === 0 && !loading ? (
-             <motion.p 
+          {error ? (
+             <motion.div 
+               key="error"
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               style={{ textAlign: 'center', width: '100%', padding: '30px' }}
+             >
+               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--accent-secondary)', marginBottom: '15px' }}>{error}</h3>
+               <button className="action-btn" onClick={handleSearch} style={{ background: 'transparent', border: '1px solid var(--accent-secondary)', color: 'var(--accent-secondary)', padding: '10px 20px', fontSize: '0.9rem' }}>Override & Retry</button>
+             </motion.div>
+          ) : problems.length === 0 && !loading ? (
+             <motion.div 
                key="empty"
                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-               style={{ textAlign: 'center', width: '100%', opacity: 0.7, padding: '20px' }}
+               style={{ textAlign: 'center', width: '100%', padding: '30px' }}
              >
-               Awaiting search query configuration.
-             </motion.p>
+               <p style={{ opacity: 0.8, marginBottom: '20px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.2rem', color: 'var(--text-main)' }}>
+                 Target Not Found - Re-scanning...
+               </p>
+               <button className="action-btn" onClick={handleSearch} style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '10px 20px', fontSize: '0.9rem' }}>Retry Search</button>
+             </motion.div>
           ) : problems.length > 0 ? (
             <motion.div 
                key="results"
