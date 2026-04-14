@@ -394,14 +394,29 @@ app.post('/api/ai/fetch-dsa', async (req, res) => {
 app.post('/api/networking/fetch-profiles', async (req, res) => {
     const { role, company, experience } = req.body;
     
-    if (!process.env.GEMINI_API_KEY) {
-        return res.status(401).json({ error: "API Key Missing" });
+    if (!process.env.GEMINI_API_KEY || !process.env.SERP_API_KEY) {
+        return res.status(401).json({ error: "API Keys Missing" });
     }
 
     try {
+        const serpQuery = `site:linkedin.com/in/ "${role}" at "${company}"`;
+        const serpResponse = await fetch(`https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(serpQuery)}&api_key=${process.env.SERP_API_KEY}`);
+        const serpData = await serpResponse.json();
+        
+        let organicResults = serpData.organic_results || [];
+        if (organicResults.length === 0) return res.json([]);
+        
+        const rawResults = organicResults.map(r => ({ title: r.title, snippet: r.snippet, link: r.link }));
+
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const systemPrompt = `You are a Professional Networking Scout. For the role "${role}" at "${company}", find 5 REALISTIC LinkedIn profile examples. Return ONLY a JSON array. Each object MUST have: "name", "current_role" (Exact title), "match_score" (80-99), and "profile_url". For "profile_url", generate a valid search-based link like: https://www.google.com/search?q=https://www.linkedin.com/search/results/people/%3Fkeywords%3D${role}%20${company}. If data is unavailable, return an empty array [].`;
+        const systemPrompt = `You are a strict Professional Networking Scout. I am providing you with live Google Search results resolving to LinkedIn. 
+Filter these results and select the best matches for a user looking for a "${role}" at "${company}" with "${experience}" experience.
+Return ONLY a JSON array. Each object MUST have: "name" (extract from title), "current_role" (Extract exact role), "match_score" (80-99 based on relevance), and "profile_url" (must be exactly the link provided in the results, ensuring it has linkedin.com). If the link is not linkedin.com/in/, ignore it.
+Live Search Results:
+${JSON.stringify(rawResults)}
+If no good matches are found, return an empty array [].`;
+        
         const result = await model.generateContent(systemPrompt);
         let responseText = result.response.text();
         
@@ -414,11 +429,11 @@ app.post('/api/networking/fetch-profiles', async (req, res) => {
 
         let parsedData = JSON.parse(responseText);
         if (Array.isArray(parsedData)) {
-            parsedData = parsedData.filter(profile => profile.profile_url && profile.profile_url !== "undefined");
+            parsedData = parsedData.filter(profile => profile.profile_url && profile.profile_url.includes('linkedin.com/in/'));
             return res.json(parsedData);
         }
     } catch (error) {
-        console.error("Gemini API Interceptor Error (NETWORKING):", error);
+        console.error("Pipeline Error (NETWORKING):", error);
     }
     
     res.json([]);
