@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 import AIConsultant from './pages/AIConsultant';
 import LiveOpportunities from './pages/LiveOpportunities';
@@ -46,6 +47,7 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [guideMessages, setGuideMessages] = useState([{text: "Greetings. I am JARVIS, your advanced AI Assistant. How may I be of assistance today?", sender: "bot"}]);
   const [isTyping, setIsTyping] = useState(false);
+  const [fontSize, setFontSize] = useState(16);
 
   const chatRef = useRef(null);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -217,16 +219,25 @@ function App() {
             <circle cx={118 + eyePos.x} cy={107 + eyePos.y} r="8" fill="currentColor" className="bot-glow" filter="url(#eyeGlow)" />
           </svg>
 
+          <AnimatePresence>
           {isChatOpen && (
-            <div ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'rgba(0, 20, 50, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid #00FFFF', boxShadow: '0 0 40px rgba(0, 255, 255, 0.3)', borderRadius: '16px' }}>
+            <motion.div 
+               initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+               ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'rgba(0, 20, 50, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid #00FFFF', boxShadow: '0 0 40px rgba(0, 255, 255, 0.3)', borderRadius: '16px', overflow: 'hidden' }}>
               <div className="close-btn" onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: '#00FFFF', top: '15px', right: '20px' }}>&times;</div>
-              <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px', color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '2px', textTransform: 'uppercase' }}>JARVIS</h4>
-              <div className="guide-messages-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px' }}>
+                <h4 style={{ margin: 0, color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500' }}>JARVIS</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '30px' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif' }}>A</span>
+                  <input type="range" title="Scale Font Size" min="14" max="22" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} style={{ width: '60px', accentColor: '#00FFFF', cursor: 'pointer' }} />
+                </div>
+              </div>
+              <div className="guide-messages-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px', scrollBehavior: 'smooth' }}>
                 {guideMessages.map((msg, i) => (
-                  <div key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
                     <div 
                       className={`message-bubble guide ${msg.sender}`} 
-                      style={{ background: msg.sender === 'user' ? 'rgba(0, 255, 255, 0.15)' : 'rgba(0,0,0,0.3)', border: msg.sender === 'user' ? '1px solid #00FFFF' : '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '12px 16px', borderRadius: '12px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.9rem', lineHeight: '1.5' }}
+                      style={{ background: msg.sender === 'user' ? 'rgba(0, 255, 255, 0.15)' : 'rgba(0,0,0,0.3)', border: msg.sender === 'user' ? '1px solid #00FFFF' : '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '12px 16px', borderRadius: '12px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '500', transition: 'font-size 0.2s ease-out' }}
                     >
                       {msg.sender === 'bot' && msg.isNew ? (
                          <TypewriterText text={msg.text} formatFn={formatTextWithLinks} onDone={() => { msg.isNew = false; }} />
@@ -234,14 +245,14 @@ function App() {
                          <span dangerouslySetInnerHTML={formatTextWithLinks(msg.text)} />
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 {isTyping && (
-                  <div className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 16px', borderRadius: '12px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.85rem', fontWeight: 'bold', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 16px', borderRadius: '12px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '500', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'font-size 0.2s ease-out' }}>
                       <span className="spinner" style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Processing...
                     </div>
-                  </div>
+                  </motion.div>
                 )}
                 <div ref={guideEndRef} />
               </div>
@@ -252,12 +263,13 @@ function App() {
                   onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
                   placeholder="Ask JARVIS..."
                   disabled={isTyping}
-                  style={{ flexGrow: 1, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,255,0.4)', color: '#fff', padding: '12px', borderRadius: '8px', fontFamily: '"Space Grotesk", sans-serif' }}
+                  style={{ flexGrow: 1, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,255,0.4)', color: '#fff', padding: '12px', borderRadius: '8px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500' }}
                 />
-                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 18px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}>SEND</button>
+                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 18px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600' }}>SEND</button>
               </div>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
       </div>
     </BrowserRouter>
