@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function DSASniper({ API_URL }) {
   const [completed, setCompleted] = useState(() => {
@@ -10,8 +11,21 @@ function DSASniper({ API_URL }) {
     }
   });
 
-  const [topic, setTopic] = useState('');
-  const [company, setCompany] = useState('Any MNC');
+  const topics = [
+    'Arrays', 'Strings', 'Hash Table', 'Two Pointers', 'Linked List', 
+    'Stack', 'Queue', 'Sliding Window', 'Backtracking', 'Trees', 
+    'Tries', 'Heaps', 'Dynamic Programming', 'Graphs', 'Greedy', 
+    'Math', 'Bit Manipulation'
+  ];
+
+  const mncs = [
+    'Google', 'Amazon', 'Microsoft', 'Netflix', 'Meta', 
+    'Adobe', 'Uber', 'Goldman Sachs', 'Atlassian', 'TCS'
+  ];
+
+  const [topic, setTopic] = useState(topics[0]);
+  const [company, setCompany] = useState(mncs[0]);
+  const [problemCount, setProblemCount] = useState(5);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [explanation, setExplanation] = useState(null);
@@ -21,23 +35,19 @@ function DSASniper({ API_URL }) {
     localStorage.setItem('dsa-names', JSON.stringify(completed));
   }, [completed]);
 
-  const toggleProblem = (name) => {
+  const toggleProblem = (title) => {
     setCompleted(prev => 
-      prev.includes(name) ? prev.filter(pName => pName !== name) : [...prev, name]
+      prev.includes(title) ? prev.filter(pName => pName !== title) : [...prev, title]
     );
   };
 
   const handleSearch = async () => {
-    if (!topic.trim()) {
-      alert("Specify an algorithmic framework or topic (e.g., Dynamic Programming, Trees) to parse indices.");
-      return;
-    }
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/get-dsa-problems`, {
+      const response = await fetch(`${API_URL}/api/ai/fetch-dsa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, company })
+        body: JSON.stringify({ topic, company, count: problemCount })
       });
       const data = await response.json();
       setProblems(Array.isArray(data) ? data : []);
@@ -66,8 +76,11 @@ function DSASniper({ API_URL }) {
     }
   };
 
-  const generateLink = (type, problemName) => {
-    const encoded = encodeURIComponent(problemName);
+  const generateLink = (type, prob) => {
+    if (type === 'solve' && prob.leetcode_slug) {
+      return `https://leetcode.com/problems/${prob.leetcode_slug}/`;
+    }
+    const encoded = encodeURIComponent(prob.title);
     if (type === 'solve') return `https://leetcode.com/problemset/all/?search=${encoded}`;
     if (type === 'discuss') return `https://leetcode.com/discuss/interview-question?currentPage=1&orderBy=hot&query=${encoded}`;
     return '#';
@@ -76,88 +89,138 @@ function DSASniper({ API_URL }) {
   return (
     <div className="layout-col page-fade-in opportunities-page">
       <div className="header-box">
-        <h1>DSA Sniper Dashboard</h1>
+        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif' }}>DSA Sniper Dashboard</h1>
         <p>Unlimited Web-Indexed Architecture Execution Algorithm Tracker.</p>
       </div>
 
       <div className="progress-container glass" style={{ padding: '20px', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Lifetime Algorithms Mastered</div>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--success-neon)', textShadow: '0 0 20px var(--success-neon)' }}>
+          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--success-neon, #00ff88)', textShadow: '0 0 20px var(--success-neon, #00ff88)' }}>
             {completed.length}
           </div>
         </div>
       </div>
 
-      <div className="glass filter-container" style={{ padding: '20px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-         <div className="input-group-row">
-          <input type="text" placeholder="Algorithm Topic (e.g., Backtracking, Arrays, Fast & Slow Pointers)" value={topic} onChange={e => setTopic(e.target.value)} />
-          <select value={company} onChange={e => setCompany(e.target.value)} className="glass-dropdown" style={{ flex: '0.4' }}>
-            <option value="Any MNC">Any MNC</option>
-            <option value="Google">Google</option>
-            <option value="Amazon">Amazon</option>
-            <option value="Microsoft">Microsoft</option>
-            <option value="Meta">Meta</option>
-            <option value="Apple">Apple</option>
-            <option value="TCS/Infosys">TCS / Infosys</option>
+      <div className="glass filter-container" style={{ padding: '20px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+         <div className="input-group-row" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <select value={topic} onChange={e => setTopic(e.target.value)} className="glass-dropdown" style={{ flex: '1', minWidth: '200px', background: 'var(--input-bg)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '16px', fontSize: '1rem', outline: 'none' }}>
+            {topics.map(t => <option key={t} value={t} style={{background: 'var(--bg-core)'}}>{t}</option>)}
+          </select>
+          <select value={company} onChange={e => setCompany(e.target.value)} className="glass-dropdown" style={{ flex: '1', minWidth: '200px', background: 'var(--input-bg)', color: 'var(--text-main)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '16px', fontSize: '1rem', outline: 'none' }}>
+            {mncs.map(c => <option key={c} value={c} style={{background: 'var(--bg-core)'}}>{c}</option>)}
           </select>
         </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 5px' }}>
+          <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Number of Problems: <span style={{ color: 'var(--accent-primary)' }}>{problemCount}</span></label>
+          <input 
+            type="range" 
+            min="1" 
+            max="20" 
+            value={problemCount} 
+            onChange={e => setProblemCount(Number(e.target.value))} 
+            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+          />
+        </div>
         <button onClick={handleSearch} className="action-btn neon-glow-btn" disabled={loading} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
-          {loading ? 'Executing Indexing Sweep...' : 'Deploy Sniper Search'}
+          {loading ? 'Fetching JSON Matrices...' : 'Deploy Sniper Search'}
         </button>
       </div>
 
       <div className="dsa-grid" style={{ minHeight: '200px' }}>
-        {loading ? (
-           <p className="processing-text" style={{ textAlign: 'center', width: '100%', gridColumn: '1 / -1' }}>Accessing proprietary problem datasets natively...</p> 
-        ) : problems.length === 0 ? (
-           <p style={{ textAlign: 'center', width: '100%', gridColumn: '1 / -1', opacity: 0.7 }}>Awaiting search query configuration.</p>
-        ) : (
-          <div className="glass dsa-card" style={{ padding: '20px', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {problems.map((prob, idx) => (
-                <div key={idx} className="dsa-problem-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '8px', flexWrap: 'wrap', gap: '15px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={completed.includes(prob.name)} 
-                      onChange={() => toggleProblem(prob.name)} 
-                      className="dsa-checkbox"
-                    />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '1.2rem', color: completed.includes(prob.name) ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: completed.includes(prob.name) ? 'line-through' : 'none', fontWeight: 'bold' }}>
-                        {prob.name}
-                      </span>
-                      <span style={{ fontSize: '0.85rem', color: prob.difficulty === 'Easy' ? 'var(--success-neon)' : prob.difficulty === 'Medium' ? 'var(--accent-primary)' : 'var(--accent-secondary)' }}>
-                        {prob.difficulty || 'Unrated'}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button className="power-btn" onClick={() => window.open(generateLink('discuss', prob.name), '_blank')}>📑 Discuss</button>
-                    <button className="power-btn" onClick={() => handleExplain(prob.name)}>💡 AI Approach</button>
-                    <button className="power-btn solve" onClick={() => window.open(generateLink('solve', prob.name), '_blank')}>🚀 LeetCode</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {loading ? (
+             <motion.p 
+               key="loading"
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="processing-text" 
+               style={{ textAlign: 'center', width: '100%', padding: '20px', color: 'var(--accent-primary)' }}
+             >
+               Accessing Gemini proprietary problem datasets...
+             </motion.p> 
+          ) : problems.length === 0 ? (
+             <motion.p 
+               key="empty"
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               style={{ textAlign: 'center', width: '100%', opacity: 0.7, padding: '20px' }}
+             >
+               Awaiting search query configuration.
+             </motion.p>
+          ) : (
+            <motion.div 
+               key="results"
+               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+               className="glass dsa-card" style={{ padding: '20px', marginBottom: '20px' }}
+            >
+              <h2 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-main)', marginBottom: '20px', fontSize: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '15px' }}>Sniper Results</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <AnimatePresence>
+                  {problems.map((prob, idx) => (
+                    <motion.div 
+                      key={idx} 
+                      initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
+                      className="dsa-problem-row glass" 
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', flexWrap: 'wrap', gap: '20px', border: '1px solid var(--glass-border)' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: '1', minWidth: '250px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={completed.includes(prob.title)} 
+                          onChange={() => toggleProblem(prob.title)} 
+                          className="dsa-checkbox"
+                          style={{ accentColor: 'var(--accent-primary)', width: '22px', height: '22px', marginTop: '4px', cursor: 'pointer' }}
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: '"Inter", sans-serif', gap: '6px' }}>
+                          <span style={{ fontSize: '1.15rem', color: completed.includes(prob.title) ? 'var(--text-muted)' : 'var(--text-main)', textDecoration: completed.includes(prob.title) ? 'line-through' : 'none', fontWeight: '600' }}>
+                            {prob.title}
+                          </span>
+                          <span style={{ fontSize: '0.85rem', color: prob.difficulty === 'Easy' ? '#00ff88' : prob.difficulty === 'Medium' ? 'var(--accent-primary)' : 'var(--accent-secondary)', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            {prob.difficulty} <span style={{ color: 'var(--text-muted)', margin: '0 5px' }}>•</span> {prob.topic}
+                          </span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                            {prob.company_context}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <button className="power-btn" style={{ padding: '10px 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', fontWeight: '500' }} onClick={() => window.open(generateLink('discuss', prob), '_blank')}>📑 Discuss</button>
+                        <button className="power-btn" style={{ padding: '10px 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', fontWeight: '500' }} onClick={() => handleExplain(prob.title)}>💡 AI Approach</button>
+                        <button className="power-btn solve" style={{ padding: '10px 15px', background: 'rgba(0, 255, 255, 0.1)', border: '1px solid #00FFFF', color: '#00FFFF', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', textShadow: '0 0 8px rgba(0,255,255,0.4)', transition: 'all 0.3s ease', boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)' }} onClick={() => window.open(generateLink('solve', prob), '_blank')}>🚀 Solve on LeetCode</button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {explanation && (
-        <div className="explanation-modal-overlay" onClick={() => !loadingExplain && setExplanation(null)}>
-          <div className="explanation-modal glass" onClick={e => e.stopPropagation()}>
-             <h3 style={{ borderBottom: '1px solid var(--accent-primary)', paddingBottom: '10px', marginBottom: '15px' }}>{explanation.title}</h3>
-             <div className="explanation-content" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', color: 'var(--text-main)' }}>
-                {explanation.text}
-             </div>
-             <button className="action-btn" onClick={() => setExplanation(null)} style={{ marginTop: '20px', width: '100%' }} disabled={loadingExplain}>
-               Dismiss
-             </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {explanation && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="explanation-modal-overlay" 
+            onClick={() => !loadingExplain && setExplanation(null)}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="explanation-modal glass" 
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '650px', maxHeight: '85vh', overflowY: 'auto', padding: '30px', border: '1px solid var(--accent-primary)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
+            >
+               <h3 style={{ borderBottom: '1px solid rgba(0, 210, 255, 0.3)', paddingBottom: '15px', marginBottom: '20px', fontFamily: '"Space Grotesk", sans-serif', color: 'var(--accent-primary)', fontSize: '1.4rem' }}>{explanation.title}</h3>
+               <div className="explanation-content" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--text-main)', fontFamily: '"Inter", sans-serif', fontSize: '0.95rem' }}>
+                  {explanation.text}
+               </div>
+               <button className="action-btn" onClick={() => setExplanation(null)} style={{ marginTop: '25px', width: '100%', padding: '14px', background: 'var(--accent-primary)', color: '#000', fontWeight: 'bold' }} disabled={loadingExplain}>
+                 DISMISS
+               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
