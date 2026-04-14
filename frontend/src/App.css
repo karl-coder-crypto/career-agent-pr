@@ -1211,3 +1211,17 @@ input:focus, textarea:focus {
   margin-bottom: 20px;
   border-radius: 4px;
 }
+
+.scroll-cyan::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-cyan::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-cyan::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.6);
+  border-radius: 10px;
+}
+.scroll-cyan::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 1);
+}

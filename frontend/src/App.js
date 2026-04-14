@@ -223,21 +223,21 @@ function App() {
           {isChatOpen && (
             <motion.div 
                initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-               ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'rgba(0, 20, 50, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid #00FFFF', boxShadow: '0 0 40px rgba(0, 255, 255, 0.3)', borderRadius: '16px', overflow: 'hidden' }}>
-              <div className="close-btn" onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: '#00FFFF', top: '15px', right: '20px' }}>&times;</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px' }}>
+               ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'rgba(0, 20, 50, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid #00FFFF', boxShadow: '0 0 40px rgba(0, 255, 255, 0.3)', borderRadius: '16px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '15px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px', flexShrink: 0 }}>
                 <h4 style={{ margin: 0, color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500' }}>JARVIS</h4>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '30px' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif' }}>A</span>
-                  <input type="range" title="Scale Font Size" min="14" max="22" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} style={{ width: '60px', accentColor: '#00FFFF', cursor: 'pointer' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '2px 8px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}>A-</button>
+                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '2px 8px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}>A+</button>
+                  <div onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: '#00FFFF', cursor: 'pointer', fontSize: '1.6rem', lineHeight: '1', padding: '0 5px' }}>&times;</div>
                 </div>
               </div>
-              <div className="guide-messages-container" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px', scrollBehavior: 'smooth' }}>
+              <div className="guide-messages-container scroll-cyan" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px', scrollBehavior: 'smooth' }}>
                 {guideMessages.map((msg, i) => (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
                     <div 
                       className={`message-bubble guide ${msg.sender}`} 
-                      style={{ background: msg.sender === 'user' ? 'rgba(0, 255, 255, 0.15)' : 'rgba(0,0,0,0.3)', border: msg.sender === 'user' ? '1px solid #00FFFF' : '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '12px 16px', borderRadius: '12px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '500', transition: 'font-size 0.2s ease-out' }}
+                      style={{ background: msg.sender === 'user' ? 'rgba(0, 255, 255, 0.15)' : 'rgba(0,0,0,0.3)', border: msg.sender === 'user' ? '1px solid #00FFFF' : '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '12px 16px', borderRadius: '12px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '500', transition: 'all 0.2s ease', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                     >
                       {msg.sender === 'bot' && msg.isNew ? (
                          <TypewriterText text={msg.text} formatFn={formatTextWithLinks} onDone={() => { msg.isNew = false; }} />
@@ -249,14 +249,14 @@ function App() {
                 ))}
                 {isTyping && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 16px', borderRadius: '12px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '500', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'font-size 0.2s ease-out' }}>
+                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 16px', borderRadius: '12px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '500', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
                       <span className="spinner" style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Processing...
                     </div>
                   </motion.div>
                 )}
                 <div ref={guideEndRef} />
               </div>
-              <div className="chat-input-area guide" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <div className="chat-input-area guide" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexShrink: 0 }}>
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
