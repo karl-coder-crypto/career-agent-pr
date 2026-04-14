@@ -391,6 +391,38 @@ app.post('/api/ai/fetch-dsa', async (req, res) => {
     res.json([]);
 });
 
+app.post('/api/networking/fetch-profiles', async (req, res) => {
+    const { role, company, experience } = req.body;
+    
+    if (!process.env.GEMINI_API_KEY) {
+        return res.status(401).json({ error: "API Key Missing" });
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const systemPrompt = `Find top real LinkedIn profile slugs for ${role} at ${company} with ${experience} experience. Return ONLY a JSON array with exact properties: "name", "current_role", "profile_url" (a valid linkedin URL formatting similar to https://www.linkedin.com/in/slug), and "match_score" (e.g. "98%"). If data is unavailable, return an empty array [].`;
+        const result = await model.generateContent(systemPrompt);
+        let responseText = result.response.text();
+        
+        const match = responseText.match(/\[.*\]/s);
+        if (match) {
+            responseText = match[0];
+        } else {
+            return res.json([]);
+        }
+
+        let parsedData = JSON.parse(responseText);
+        if (Array.isArray(parsedData)) {
+            return res.json(parsedData);
+        }
+    } catch (error) {
+        console.error("Gemini API Interceptor Error (NETWORKING):", error);
+    }
+    
+    res.json([]);
+});
+
 app.post('/api/explain-dsa', async (req, res) => {
     const { problemName } = req.body;
     if (process.env.GEMINI_API_KEY) {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function NetworkingHub({ API_URL }) {
   const [companyName, setCompanyName] = useState('');
@@ -7,6 +8,40 @@ function NetworkingHub({ API_URL }) {
   const [loading, setLoading] = useState(false);
   const [outreachData, setOutreachData] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+
+  const [searchRole, setSearchRole] = useState('');
+  const [searchCompany, setSearchCompany] = useState('');
+  const [searchExp, setSearchExp] = useState('');
+  const [loadingRadar, setLoadingRadar] = useState(false);
+  const [profiles, setProfiles] = useState([]);
+  const [activeFilter, setActiveFilter] = useState('All');
+
+  const handleNetworkSearch = async () => {
+    if (!searchRole || !searchCompany) return;
+    setLoadingRadar(true);
+    setProfiles([]);
+    try {
+      const response = await fetch(`${API_URL}/api/networking/fetch-profiles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: searchRole, company: searchCompany, experience: searchExp || '0-2 years' })
+      });
+      const data = await response.json();
+      setProfiles(Array.isArray(data) ? data : []);
+    } catch(err) {
+      console.error(err);
+    }
+    setLoadingRadar(false);
+  };
+
+  const filteredProfiles = profiles.filter(p => {
+    if (activeFilter === 'All') return true;
+    const str = (p.current_role || "").toLowerCase();
+    if (activeFilter === 'HR') return str.includes('hr') || str.includes('talent') || str.includes('recruiter');
+    if (activeFilter === 'SDE') return str.includes('sde') || str.includes('engineer') || str.includes('developer');
+    if (activeFilter === 'Lead') return str.includes('lead') || str.includes('manager') || str.includes('principal') || str.includes('staff') || str.includes('head');
+    return true;
+  });
 
   const generateOutreach = async () => {
     if (!companyName.trim() || !targetRole.trim()) return;
@@ -36,12 +71,87 @@ function NetworkingHub({ API_URL }) {
 
   return (
     <div className="layout-col page-fade-in opportunities-page">
-      <div className="header-box">
-        <h1>Networking Hub</h1>
-        <p>Aegis Automated Outreach Generator</p>
+      <div className="header-box" style={{ marginBottom: '40px' }}>
+        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Networking Hub</h1>
+        <p>JARVIS Automated Outreach & Smart Connections</p>
       </div>
 
-      <div className="glass panel">
+      <div className="glass panel" style={{ marginBottom: '30px', border: '1px solid var(--accent-primary)', boxShadow: '0 0 20px rgba(0,255,255,0.05)' }}>
+        <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-main)', marginBottom: '20px', fontSize: '1.4rem' }}>Smart Connections Engine</h3>
+        <div className="input-group-row">
+          <input 
+            type="text" 
+            placeholder="Field / Role (e.g. SDE, Data)" 
+            value={searchRole}
+            onChange={(e) => setSearchRole(e.target.value)}
+          />
+          <input 
+            type="text" 
+            placeholder="Company (e.g. Google)" 
+            value={searchCompany}
+            onChange={(e) => setSearchCompany(e.target.value)}
+          />
+          <input 
+            type="text" 
+            placeholder="Experience (e.g. 0-2 yrs)" 
+            value={searchExp}
+            onChange={(e) => setSearchExp(e.target.value)}
+          />
+        </div>
+        <button 
+          className="action-btn neon-glow-btn" 
+          disabled={loadingRadar || !searchCompany || !searchRole}
+          onClick={handleNetworkSearch}
+          style={{ marginTop: '20px', width: '100%', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}
+        >
+          {loadingRadar ? 'Scanning Architectures...' : 'Deploy Network Radar'}
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+         {loadingRadar && (
+            <motion.div key="radar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'relative', height: '200px', marginBottom: '30px' }}>
+                <div className="radar-container">
+                   <div className="radar-sweep"></div>
+                </div>
+                <p style={{ textAlign: 'center', color: 'var(--accent-primary)', fontFamily: '"Space Grotesk", sans-serif', marginTop: '170px', fontWeight: 'bold', letterSpacing: '1px' }}>Searching LinkedIn Network...</p>
+            </motion.div>
+         )}
+
+         {!loadingRadar && profiles.length > 0 && (
+            <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ marginBottom: '40px' }}>
+               <div className="filter-tabs">
+                 {['All', 'HR', 'SDE', 'Lead'].map(f => (
+                    <button key={f} className={activeFilter === f ? 'active' : ''} onClick={() => setActiveFilter(f)} style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                       Only {f === 'All' ? 'All' : f + "s"}
+                    </button>
+                 ))}
+               </div>
+               
+               <div className="network-grid">
+                  <AnimatePresence>
+                    {filteredProfiles.map((p, i) => (
+                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} key={i} className="profile-card">
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', margin: '0 0 10px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{p.name}</h3>
+                               <span style={{ background: 'rgba(0,255,255,0.1)', color: '#00FFFF', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid #00FFFF', boxShadow: '0 0 10px rgba(0,255,255,0.2)' }}>{p.match_score}</span>
+                            </div>
+                            <p style={{ color: '#a0aec0', fontSize: '0.95rem', marginBottom: '20px', lineHeight: '1.5' }}>{p.current_role}</p>
+                          </div>
+                          <button onClick={() => window.open(p.profile_url, '_blank')} className="action-btn" style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '500', transition: 'all 0.3s ease' }}>
+                             <svg width="18" height="18" viewBox="0 0 24 24" fill="#00FFFF"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> Connect on LinkedIn
+                          </button>
+                       </motion.div>
+                    ))}
+                  </AnimatePresence>
+               </div>
+            </motion.div>
+         )}
+      </AnimatePresence>
+
+      <div className="glass panel" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+        <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-main)', marginBottom: '20px', fontSize: '1.4rem' }}>Outreach Generator</h3>
         <div className="input-group-row">
           <input 
             type="text" 
