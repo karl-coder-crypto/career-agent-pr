@@ -369,19 +369,11 @@ app.post('/api/get-dsa-problems', async (req, res) => {
 app.post('/api/ai/fetch-dsa', async (req, res) => {
     const { topic, company, count } = req.body;
     
-    const fallbackGenerated = Array.from({length: count}, (_, i) => ({
-        title: `${company} Profile: ${topic} Matrix ${i+1}`,
-        difficulty: ["Easy", "Medium", "Hard"][Math.floor(Math.random()*3)],
-        topic: topic,
-        company_context: `Historically logged in ${company} analytical interviews.`,
-        leetcode_link: `https://leetcode.com/problemset/all/?search=${encodeURIComponent(topic)}`
-    }));
-
     if (process.env.GEMINI_API_KEY) {
         try {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-            const systemPrompt = `Generate exactly ${count} unique LeetCode problems for the company "${company}" and topic "${topic}". Return ONLY a raw JSON array of objects with keys: title, difficulty, leetcode_link, and a short company_context. Do not include any markdown or dummy data like Two Sum unless it actually belongs to the topic.`;
+            const systemPrompt = `Act as a Technical Interview Expert. For the company "${company}" and topic "${topic}", provide exactly ${count} REAL LeetCode problems. Return ONLY a JSON array. Each object must have: "title" (Official LeetCode name), "difficulty", "leetcode_link" (The actual direct URL), and "company_context" (Why this was asked). If data is unavailable, return an empty array [].`;
             const result = await model.generateContent(systemPrompt);
             let responseText = result.response.text();
             
@@ -395,8 +387,12 @@ app.post('/api/ai/fetch-dsa', async (req, res) => {
                if(lastBracket !== -1) responseText = responseText.substring(0, lastBracket + 1);
             }
 
-            const parsedData = JSON.parse(responseText);
-            if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].title) {
+            let parsedData = JSON.parse(responseText);
+            if (Array.isArray(parsedData)) {
+                parsedData = parsedData.filter(prob => {
+                    const t = prob.title ? prob.title.toLowerCase() : "";
+                    return !t.includes('matrix') && !t.includes('profile');
+                });
                 return res.json(parsedData);
             }
         } catch (error) {
@@ -404,8 +400,7 @@ app.post('/api/ai/fetch-dsa', async (req, res) => {
         }
     }
     
-    await new Promise(r => setTimeout(r, 1200));
-    res.json(fallbackGenerated);
+    res.json([]);
 });
 
 app.post('/api/explain-dsa', async (req, res) => {
