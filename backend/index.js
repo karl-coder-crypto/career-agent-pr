@@ -398,13 +398,21 @@ app.post('/api/networking/fetch-profiles', async (req, res) => {
         return res.status(401).json({ error: "API Keys Missing" });
     }
 
+    const universalFallback = [{
+        name: "View All Verified Targets",
+        current_role: `Live LinkedIn Network for ${company}`,
+        match_score: "100%",
+        profile_url: `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(role + " " + company)}`
+    }];
+
     try {
-        const serpQuery = `site:linkedin.com/in/ "${role}" at "${company}"`;
+        const serpQuery = `site:linkedin.com/in/ "${role}" "${company}"`;
         const serpResponse = await fetch(`https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(serpQuery)}&api_key=${process.env.SERP_API_KEY}`);
         const serpData = await serpResponse.json();
         
         let organicResults = serpData.organic_results || [];
-        if (organicResults.length === 0) return res.json([]);
+        console.log("SERP_API_RESULTS_COUNT:", organicResults.length);
+        if (organicResults.length === 0) return res.json(universalFallback);
         
         const rawResults = organicResults.map(r => ({ title: r.title, snippet: r.snippet, link: r.link }));
 
@@ -412,7 +420,7 @@ app.post('/api/networking/fetch-profiles', async (req, res) => {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const systemPrompt = `You are a strict Professional Networking Scout. I am providing you with live Google Search results resolving to LinkedIn. 
 Filter these results and select the best matches for a user looking for a "${role}" at "${company}" with "${experience}" experience.
-Return ONLY a JSON array. Each object MUST have: "name" (extract from title), "current_role" (Extract exact role), "match_score" (80-99 based on relevance), and "profile_url" (must be exactly the link provided in the results, ensuring it has linkedin.com). If the link is not linkedin.com/in/, ignore it.
+Return ONLY a JSON array. Each object MUST have: "name" (extract from title), "current_role" (Extract exact role), "match_score" (80-99 based on relevance), and "profile_url" (must be exactly the link provided in the results, ensuring it has linkedin.com). If the link does not contain linkedin.com, ignore it.
 Live Search Results:
 ${JSON.stringify(rawResults)}
 If no good matches are found, return an empty array [].`;
@@ -424,19 +432,20 @@ If no good matches are found, return an empty array [].`;
         if (match) {
             responseText = match[0];
         } else {
-            return res.json([]);
+            return res.json(universalFallback);
         }
 
         let parsedData = JSON.parse(responseText);
-        if (Array.isArray(parsedData)) {
-            parsedData = parsedData.filter(profile => profile.profile_url && profile.profile_url.includes('linkedin.com/in/'));
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
+            parsedData = parsedData.filter(profile => profile.profile_url && profile.profile_url.includes('linkedin.com'));
+            if (parsedData.length === 0) return res.json(universalFallback);
             return res.json(parsedData);
         }
     } catch (error) {
         console.error("Pipeline Error (NETWORKING):", error);
     }
     
-    res.json([]);
+    res.json(universalFallback);
 });
 
 app.post('/api/explain-dsa', async (req, res) => {
