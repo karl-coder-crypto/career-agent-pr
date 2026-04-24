@@ -13,17 +13,37 @@ import AuthGateway from './pages/AuthGateway';
 import ResumeBuilder from './pages/ResumeBuilder';
 import DSASniper from './pages/DSASniper';
 import SkillArchitect from './pages/SkillArchitect';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 
-const generateStars = (count) => {
-  let shadows = [];
-  for(let i=0; i<count; i++) {
-    shadows.push(`${Math.floor(Math.random() * 110)}vw ${Math.floor(Math.random() * 110)}vh #FFF`);
-  }
-  return shadows.join(', ');
+const BentoDashboard = () => {
+  const navigate = useNavigate();
+  const modules = [
+    { title: 'JARVIS Consultant', path: '/consultant', desc: 'AI-powered career guidance', class: 'wide' },
+    { title: 'Networking Hub', path: '/networking-hub', desc: 'Automated outreach radar', class: 'tall' },
+    { title: 'DSA Sniper', path: '/dsa-sniper', desc: 'Targeted algorithm prep', class: '' },
+    { title: 'Mock Interview', path: '/mock-interview', desc: 'Simulated interviews', class: '' },
+    { title: 'Live Opportunities', path: '/opportunities', desc: 'Real-time job scanner', class: 'wide' },
+    { title: 'Skill Architect', path: '/skill-architect', desc: 'Personalized learning paths', class: '' }
+  ];
+
+  return (
+    <div className="layout-col" style={{ maxWidth: '1000px', width: '100%' }}>
+      <div className="header-box" style={{ textAlign: 'left', marginBottom: '10px' }}>
+        <h1 style={{ fontSize: '2.5rem' }}>Aegis Core</h1>
+        <p style={{ color: '#71717A', letterSpacing: '1px' }}>EXECUTIVE DASHBOARD</p>
+      </div>
+      <div className="bento-grid">
+        {modules.map((m, i) => (
+          <div key={i} className={`glass bento-card ${m.class}`} onClick={() => navigate(m.path)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: m.class === 'tall' ? '320px' : '200px', gridColumn: m.class === 'wide' ? 'span 2' : 'span 1', gridRow: m.class === 'tall' ? 'span 2' : 'span 1' }}>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{m.title}</h3>
+            <p style={{ color: '#71717A', fontSize: '1rem', fontWeight: '500' }}>{m.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
-const starLayer1 = generateStars(250);
-const starLayer2 = generateStars(100);
 
 const TypewriterText = ({ text, formatFn, onDone }) => {
   const [index, setIndex] = useState(0);
@@ -72,8 +92,6 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.documentElement.style.setProperty('--star-shadow-1', starLayer1);
-    document.documentElement.style.setProperty('--star-shadow-2', starLayer2);
   }, []);
 
   useEffect(() => {
@@ -173,14 +191,12 @@ function App() {
       )}
 
       <div className={`App dashboard-container ${isAppLoaded ? 'fade-in-up' : 'hidden'}`}>
-        <div className="star-layer star-layer-1"></div>
-        <div className="star-layer star-layer-2"></div>
         <Sidebar />
 
         <div className="main-content">
 
           <Routes>
-            <Route index element={<AIConsultant API_URL={API_URL} />} />
+            <Route index element={<ProtectedRoute><BentoDashboard /></ProtectedRoute>} />
             <Route path="/consultant" element={<AIConsultant API_URL={API_URL} />} />
             <Route path="/auth" element={<AuthGateway />} />
             <Route path="/opportunities" element={<ProtectedRoute><LiveOpportunities API_URL={API_URL} /></ProtectedRoute>} />
@@ -232,13 +248,13 @@ function App() {
           {isChatOpen && (
             <motion.div 
                initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-               ref={chatRef} className="chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: '#111111', border: '1px solid #1A1A1A', borderTop: '1px solid #00FFFF', boxShadow: '0 -5px 15px rgba(0, 255, 255, 0.2), 0 10px 30px rgba(0, 0, 0, 0.9)', borderRadius: '12px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '15px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px', flexShrink: 0 }}>
-                <h4 style={{ margin: 0, color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500' }}>JARVIS</h4>
+               ref={chatRef} className="chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: '#0A0A0A', border: '1px solid #1A1A1A', borderRadius: '24px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '24px', boxShadow: 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid #1A1A1A', paddingBottom: '12px', flexShrink: 0 }}>
+                <h4 style={{ margin: 0, color: '#FFFFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '600' }}>JARVIS</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '2px 8px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}>A-</button>
-                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '2px 8px', borderRadius: '6px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: 'bold' }}>A+</button>
-                  <div onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: '#00FFFF', cursor: 'pointer', fontSize: '1.6rem', lineHeight: '1', padding: '0 5px' }}>&times;</div>
+                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid #1A1A1A', color: '#71717A', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>A-</button>
+                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid #1A1A1A', color: '#71717A', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>A+</button>
+                  <div onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: '#71717A', cursor: 'pointer', fontSize: '1.6rem', lineHeight: '1', padding: '0 5px' }}>&times;</div>
                 </div>
               </div>
               <div className="guide-messages-container scroll-cyan" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px', scrollBehavior: 'smooth' }}>
@@ -246,7 +262,7 @@ function App() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
                     <div 
                       className={`message-bubble guide ${msg.sender}`} 
-                      style={{ background: msg.sender === 'user' ? 'rgba(0, 255, 255, 0.15)' : 'rgba(0,0,0,0.3)', border: msg.sender === 'user' ? '1px solid #00FFFF' : '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '12px 16px', borderRadius: '12px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '500', transition: 'all 0.2s ease', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                      style={{ background: msg.sender === 'user' ? '#161616' : '#111111', border: msg.sender === 'user' ? '1px solid #1A1A1A' : '1px solid #1A1A1A', color: '#FFFFFF', padding: '16px 20px', borderRadius: '24px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '400', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                     >
                       {msg.sender === 'bot' && msg.isNew ? (
                          <TypewriterText text={msg.text} formatFn={formatTextWithLinks} onDone={() => { msg.isNew = false; }} />
@@ -258,25 +274,25 @@ function App() {
                 ))}
                 {isTyping && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 16px', borderRadius: '12px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '500', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
+                    <div className="message-bubble guide bot typing-indicator" style={{ background: '#111111', border: '1px solid #1A1A1A', color: '#71717A', padding: '16px 20px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '400', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                       <span className="spinner" style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Processing...
                     </div>
                   </motion.div>
                 )}
                 <div ref={guideEndRef} />
               </div>
-              <div className="chat-input-area guide" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexShrink: 0 }}>
+              <div className="chat-input-area guide" style={{ display: 'flex', gap: '12px', marginTop: '16px', flexShrink: 0 }}>
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
                   placeholder="Ask JARVIS..."
                   disabled={isTyping}
-                  style={{ flexGrow: 1, background: '#0A0A0A', border: '1px solid #1A1A1A', color: '#fff', padding: '12px', borderRadius: '8px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'box-shadow 0.2s', boxShadow: chatInput ? '0 0 10px rgba(0,255,255,0.2)' : 'none' }}
-                  onFocus={(e) => e.target.style.boxShadow = '0 0 10px rgba(0,255,255,0.5)'}
-                  onBlur={(e) => e.target.style.boxShadow = chatInput ? '0 0 10px rgba(0,255,255,0.2)' : 'none'}
+                  style={{ flexGrow: 1, background: '#161616', border: '1px solid #1A1A1A', color: '#FFFFFF', padding: '16px 20px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: 'none' }}
+                  onFocus={(e) => e.target.style.borderColor = '#3366FF'}
+                  onBlur={(e) => e.target.style.borderColor = '#1A1A1A'}
                 />
-                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: '#111111', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 18px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600' }}>SEND</button>
+                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: '#3366FF', border: '1px solid #3366FF', color: '#FFFFFF', padding: '16px 24px', borderRadius: '24px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'background 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>SEND</button>
               </div>
             </motion.div>
           )}
