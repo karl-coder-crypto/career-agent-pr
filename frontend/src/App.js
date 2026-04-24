@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
@@ -14,6 +14,16 @@ import ResumeBuilder from './pages/ResumeBuilder';
 import DSASniper from './pages/DSASniper';
 import SkillArchitect from './pages/SkillArchitect';
 import './App.css';
+
+const generateStars = (count) => {
+  let shadows = [];
+  for(let i=0; i<count; i++) {
+    shadows.push(`${Math.floor(Math.random() * 110)}vw ${Math.floor(Math.random() * 110)}vh #FFF`);
+  }
+  return shadows.join(', ');
+};
+const starLayer1 = generateStars(250);
+const starLayer2 = generateStars(100);
 
 const TypewriterText = ({ text, formatFn, onDone }) => {
   const [index, setIndex] = useState(0);
@@ -61,8 +71,10 @@ function App() {
   ];
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.style.setProperty('--star-shadow-1', starLayer1);
+    document.documentElement.style.setProperty('--star-shadow-2', starLayer2);
+  }, []);
 
   useEffect(() => {
     if (bootPhase < bootLogs.length - 1) {
@@ -124,6 +136,8 @@ function App() {
       const yRot = (e.clientY / window.innerHeight) - 0.5;
       setRotation({ x: yRot * 60, y: xRot * 60 });
       setEyePos({ x: xRot * 15, y: yRot * 15 });
+      document.documentElement.style.setProperty('--mouse-x', xRot);
+      document.documentElement.style.setProperty('--mouse-y', yRot);
 
       if (isDragging) {
         setPosition({
@@ -159,16 +173,11 @@ function App() {
       )}
 
       <div className={`App dashboard-container ${isAppLoaded ? 'fade-in-up' : 'hidden'}`}>
+        <div className="star-layer star-layer-1"></div>
+        <div className="star-layer star-layer-2"></div>
         <Sidebar />
 
         <div className="main-content">
-          <button className="theme-toggle" onClick={toggleTheme} style={{position: 'absolute', top: '25px', right: '40px'}}>
-            {theme === 'dark' ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            )}
-          </button>
 
           <Routes>
             <Route index element={<AIConsultant API_URL={API_URL} />} />
@@ -223,7 +232,7 @@ function App() {
           {isChatOpen && (
             <motion.div 
                initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-               ref={chatRef} className="glass chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'rgba(0, 20, 50, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid #00FFFF', boxShadow: '0 0 40px rgba(0, 255, 255, 0.3)', borderRadius: '16px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '15px' }}>
+               ref={chatRef} className="chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: '#111111', border: '1px solid #1A1A1A', borderTop: '1px solid #00FFFF', boxShadow: '0 -5px 15px rgba(0, 255, 255, 0.2), 0 10px 30px rgba(0, 0, 0, 0.9)', borderRadius: '12px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '15px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid rgba(0, 255, 255, 0.3)', paddingBottom: '12px', flexShrink: 0 }}>
                 <h4 style={{ margin: 0, color: '#00FFFF', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500' }}>JARVIS</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -263,9 +272,11 @@ function App() {
                   onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
                   placeholder="Ask JARVIS..."
                   disabled={isTyping}
-                  style={{ flexGrow: 1, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,255,0.4)', color: '#fff', padding: '12px', borderRadius: '8px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500' }}
+                  style={{ flexGrow: 1, background: '#0A0A0A', border: '1px solid #1A1A1A', color: '#fff', padding: '12px', borderRadius: '8px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'box-shadow 0.2s', boxShadow: chatInput ? '0 0 10px rgba(0,255,255,0.2)' : 'none' }}
+                  onFocus={(e) => e.target.style.boxShadow = '0 0 10px rgba(0,255,255,0.5)'}
+                  onBlur={(e) => e.target.style.boxShadow = chatInput ? '0 0 10px rgba(0,255,255,0.2)' : 'none'}
                 />
-                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 18px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600' }}>SEND</button>
+                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: '#111111', border: '1px solid #00FFFF', color: '#00FFFF', padding: '12px 18px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600' }}>SEND</button>
               </div>
             </motion.div>
           )}

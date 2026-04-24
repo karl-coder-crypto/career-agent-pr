@@ -74,8 +74,11 @@ function NetworkingHub({ API_URL }) {
 
   return (
     <div className="layout-col page-fade-in opportunities-page">
-      <div className="header-box" style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif' }}>Networking Hub</h1>
+      <div className="header-box" style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#00FFFF" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 8px #00FFFF)' }}><path d="M16 21v-2a4 4 0 0 0-4-4H5c-1.1 0-2 .9-2 2v4"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+          Networking Hub
+        </h1>
         <p>JARVIS Automated Outreach & Smart Connections</p>
       </div>
 
@@ -141,12 +144,12 @@ function NetworkingHub({ API_URL }) {
                   <AnimatePresence>
                     {filteredProfiles.map((p, i) => (
                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} key={i} className="profile-card">
-                          <div>
+                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', margin: '0 0 10px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{p.name}</h3>
-                               <span style={{ background: 'rgba(0,255,255,0.1)', color: '#00FFFF', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', border: '1px solid #00FFFF', boxShadow: '0 0 10px rgba(0,255,255,0.2)' }}>{p.match_score}</span>
+                               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', margin: '0 0 10px 0', fontSize: '16px', color: '#FFFFFF' }}>{p.name}</h3>
+                               <span style={{ background: 'rgba(0,255,255,0.1)', color: '#00FFFF', padding: '4px 10px', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', border: '1px solid #00FFFF', boxShadow: '0 0 10px rgba(0,255,255,0.2)' }}>{p.match_score}</span>
                             </div>
-                            <p style={{ color: '#a0aec0', fontSize: '0.95rem', marginBottom: '20px', lineHeight: '1.5' }}>{p.current_role}</p>
+                            <p style={{ fontFamily: '"Space Grotesk", sans-serif', color: '#A0A0A0', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>{p.current_role}</p>
                           </div>
                           <button onClick={() => window.open(p.profile_url, '_blank')} className="action-btn" style={{ background: 'transparent', border: '1px solid #00FFFF', color: '#00FFFF', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '500', transition: 'all 0.3s ease' }}>
                              <svg width="18" height="18" viewBox="0 0 24 24" fill="#00FFFF"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> View Profile
