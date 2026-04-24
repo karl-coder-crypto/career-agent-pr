@@ -16,16 +16,109 @@ import SkillArchitect from './pages/SkillArchitect';
 import './App.css';
 
 const FluidBackground = () => {
+  const canvasRef = useRef(null);
   const location = useLocation();
   const path = location.pathname;
 
-  return (
-    <div className="fluid-bg-container">
-      {path.includes('dsa-sniper') && <div className="bg-math-grids"></div>}
-      {path.includes('networking-hub') && <div className="bg-organic-blobs"></div>}
-      {path.includes('opportunities') && <div className="bg-rising-particles"></div>}
-    </div>
-  );
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let time = 0;
+    
+    let mouse = { x: -1000, y: -1000 };
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resize);
+    resize();
+
+    const dots = [];
+    if (path.includes('opportunities')) {
+      for (let i = 0; i < 200; i++) {
+        dots.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          originX: Math.random() * window.innerWidth,
+          originY: Math.random() * window.innerHeight,
+          speed: Math.random() * 0.02 + 0.01,
+          size: Math.random() * 2 + 1,
+        });
+      }
+    }
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      time += 0.003;
+
+      // Color transition from #050505 to #0A0A0A
+      const r = Math.floor(5 + Math.sin(time) * 5); // 5 to 10
+      const g = Math.floor(5 + Math.sin(time) * 5); // 5 to 10
+      const b = Math.floor(5 + Math.sin(time) * 5); // 5 to 10
+      
+      // Draw 3 layered sinusoidal waves
+      for (let w = 0; w < 3; w++) {
+        ctx.fillStyle = `rgb(${r + w*2}, ${g + w*2}, ${b + w*2})`;
+        ctx.beginPath();
+        for (let i = 0; i <= canvas.width; i += 40) {
+          const y = Math.sin(i * 0.002 + time + w) * (150 + w*50) + canvas.height / 2 + (w * 100);
+          ctx.lineTo(i, y);
+        }
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.fill();
+      }
+
+      if (path.includes('opportunities')) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        dots.forEach(dot => {
+          const pulseSize = dot.size + Math.sin(time * 5 + dot.originX) * 1;
+          const dx = mouse.x - dot.x;
+          const dy = mouse.y - dot.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = 150;
+          
+          if (dist < maxDist) {
+            const force = (maxDist - dist) / maxDist;
+            dot.x -= (dx / dist) * force * 5;
+            dot.y -= (dy / dist) * force * 5;
+          } else {
+            dot.x += (dot.originX - dot.x) * 0.05;
+            dot.y += (dot.originY - dot.y) * 0.05;
+          }
+          
+          dot.originY -= dot.speed * 30;
+          if (dot.originY < -10) {
+            dot.originY = canvas.height + 10;
+            dot.y = canvas.height + 10;
+          }
+
+          ctx.beginPath();
+          ctx.arc(dot.x, dot.y, Math.max(0.1, pulseSize), 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [path]);
+
+  return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, opacity: 0.08, pointerEvents: 'none' }} />;
 };
 
 const BentoDashboard = () => {
@@ -189,6 +282,7 @@ function App() {
   return (
     <AuthProvider>
     <BrowserRouter>
+      <div className="grain-overlay"></div>
       <FluidBackground />
       {!isAppLoaded && (
         <div className="aegis-overlay">
@@ -268,8 +362,8 @@ function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', flexShrink: 0 }}>
                 <h4 style={{ margin: 0, color: 'var(--text-main)', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '600' }}>JARVIS</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s ease-in-out' }}>A-</button>
-                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s ease-in-out' }}>A+</button>
+                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>A-</button>
+                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>A+</button>
                   <div onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.6rem', lineHeight: '1', padding: '0 5px' }}>&times;</div>
                 </div>
               </div>
@@ -278,7 +372,7 @@ function App() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
                     <div 
                       className={`message-bubble guide ${msg.sender}`} 
-                      style={{ background: msg.sender === 'user' ? 'var(--input-bg)' : 'var(--bg-core)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '16px 24px', borderRadius: '24px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '400', transition: 'all 0.5s ease-in-out', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                      style={{ background: msg.sender === 'user' ? 'var(--input-bg)' : 'var(--bg-core)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '16px 24px', borderRadius: '24px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '400', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                     >
                       {msg.sender === 'bot' && msg.isNew ? (
                          <TypewriterText text={msg.text} formatFn={formatTextWithLinks} onDone={() => { msg.isNew = false; }} />
@@ -290,7 +384,7 @@ function App() {
                 ))}
                 {isTyping && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'var(--bg-core)', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '400', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.5s ease-in-out' }}>
+                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'var(--bg-core)', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '400', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                       <span className="spinner" style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Processing...
                     </div>
                   </motion.div>
@@ -304,11 +398,11 @@ function App() {
                   onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
                   placeholder="Ask JARVIS..."
                   disabled={isTyping}
-                  style={{ flexGrow: 1, background: 'var(--input-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'border-color 0.5s ease-in-out', boxShadow: 'none' }}
+                  style={{ flexGrow: 1, background: 'var(--input-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: 'none' }}
                   onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
                   onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
                 />
-                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', color: '#FFFFFF', padding: '16px 32px', borderRadius: '24px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s ease-in-out' }}>SEND</button>
+                <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', color: '#FFFFFF', padding: '16px 32px', borderRadius: '24px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>SEND</button>
               </div>
             </motion.div>
           )}
