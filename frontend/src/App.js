@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import AIConsultant from './pages/AIConsultant';
 import SynapticFlow from './components/SynapticFlow';
 import AscendingGrowth from './components/backgrounds/AscendingGrowth';
+import HelixDNA from './components/backgrounds/HelixDNA';
 import LiveOpportunities from './pages/LiveOpportunities';
 import ResumeChecker from './pages/ResumeChecker';
 import MockInterview from './pages/MockInterview';
@@ -268,7 +269,7 @@ function App() {
             <Route path="/consultant" element={<SynapticFlow><AIConsultant API_URL={API_URL} /></SynapticFlow>} />
             <Route path="/auth" element={<AuthGateway />} />
             <Route path="/opportunities" element={<ProtectedRoute><AscendingGrowth><LiveOpportunities API_URL={API_URL} /></AscendingGrowth></ProtectedRoute>} />
-            <Route path="/resume-checker" element={<ResumeChecker API_URL={API_URL} />} />
+            <Route path="/resume-checker" element={<HelixDNA><ResumeChecker API_URL={API_URL} /></HelixDNA>} />
             <Route path="/resume-builder" element={<ResumeBuilder API_URL={API_URL} />} />
             <Route path="/skill-architect" element={<ProtectedRoute><SkillArchitect API_URL={API_URL} /></ProtectedRoute>} />
             <Route path="/dsa-sniper" element={<ProtectedRoute><DSASniper API_URL={API_URL} /></ProtectedRoute>} />

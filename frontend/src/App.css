@@ -138,7 +138,18 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--glass-border);
   box-shadow: none;
   padding: 32px;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s ease-in-out;
+}
+
+:root[data-theme='dark'] .ats-card {
+  background: #0A0A0A;
+  border: 1px solid #1A1A1A;
+}
+
+:root[data-theme='light'] .ats-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .glass:hover {
