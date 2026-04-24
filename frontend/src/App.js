@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AuthGateway from './pages/AuthGateway';
 import ResumeBuilder from './pages/ResumeBuilder';
 import DSASniper from './pages/DSASniper';
+import SkillArchitect from './pages/SkillArchitect';
 import './App.css';
 
 const FluidBackground = () => {
