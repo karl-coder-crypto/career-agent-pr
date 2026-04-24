@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 import AIConsultant from './pages/AIConsultant';
 import SynapticFlow from './components/SynapticFlow';
+import AscendingGrowth from './components/backgrounds/AscendingGrowth';
 import LiveOpportunities from './pages/LiveOpportunities';
 import ResumeChecker from './pages/ResumeChecker';
 import MockInterview from './pages/MockInterview';
@@ -42,20 +43,6 @@ const FluidBackground = () => {
     window.addEventListener('resize', resize);
     resize();
 
-    const dots = [];
-    if (path.includes('opportunities')) {
-      for (let i = 0; i < 200; i++) {
-        dots.push({
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-          originX: Math.random() * window.innerWidth,
-          originY: Math.random() * window.innerHeight,
-          speed: Math.random() * 0.02 + 0.01,
-          size: Math.random() * 2 + 1,
-        });
-      }
-    }
-
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       time += 0.003;
@@ -76,36 +63,6 @@ const FluidBackground = () => {
         ctx.lineTo(canvas.width, canvas.height);
         ctx.lineTo(0, canvas.height);
         ctx.fill();
-      }
-
-      if (path.includes('opportunities')) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        dots.forEach(dot => {
-          const pulseSize = dot.size + Math.sin(time * 5 + dot.originX) * 1;
-          const dx = mouse.x - dot.x;
-          const dy = mouse.y - dot.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const maxDist = 150;
-          
-          if (dist < maxDist) {
-            const force = (maxDist - dist) / maxDist;
-            dot.x -= (dx / dist) * force * 5;
-            dot.y -= (dy / dist) * force * 5;
-          } else {
-            dot.x += (dot.originX - dot.x) * 0.05;
-            dot.y += (dot.originY - dot.y) * 0.05;
-          }
-          
-          dot.originY -= dot.speed * 30;
-          if (dot.originY < -10) {
-            dot.originY = canvas.height + 10;
-            dot.y = canvas.height + 10;
-          }
-
-          ctx.beginPath();
-          ctx.arc(dot.x, dot.y, Math.max(0.1, pulseSize), 0, Math.PI * 2);
-          ctx.fill();
-        });
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -310,7 +267,7 @@ function App() {
             <Route index element={<ProtectedRoute><BentoDashboard /></ProtectedRoute>} />
             <Route path="/consultant" element={<SynapticFlow><AIConsultant API_URL={API_URL} /></SynapticFlow>} />
             <Route path="/auth" element={<AuthGateway />} />
-            <Route path="/opportunities" element={<ProtectedRoute><LiveOpportunities API_URL={API_URL} /></ProtectedRoute>} />
+            <Route path="/opportunities" element={<ProtectedRoute><AscendingGrowth><LiveOpportunities API_URL={API_URL} /></AscendingGrowth></ProtectedRoute>} />
             <Route path="/resume-checker" element={<ResumeChecker API_URL={API_URL} />} />
             <Route path="/resume-builder" element={<ResumeBuilder API_URL={API_URL} />} />
             <Route path="/skill-architect" element={<ProtectedRoute><SkillArchitect API_URL={API_URL} /></ProtectedRoute>} />
