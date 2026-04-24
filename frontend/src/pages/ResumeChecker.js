@@ -42,6 +42,7 @@ function ResumeChecker({ API_URL }) {
           <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', margin: 0 }}>Helix DNA Sequencing Engine</p>
         </div>
         <button 
+          className="pulse-btn"
           onClick={analyzeResume} 
           disabled={loading}
           style={{

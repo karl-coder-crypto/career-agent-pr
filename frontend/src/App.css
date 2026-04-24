@@ -7,27 +7,29 @@
 }
 
 :root[data-theme='dark'] {
-  --bg-core: #050505;
-  --text-main: #E2E8F0;
-  --text-muted: #64748B;
-  --glass-bg: rgba(15, 15, 15, 0.8);
+  --bg-core: #020202;
+  --text-main: #FFFFFF;
+  --text-muted: #A1A1AA;
+  --glass-bg: #0A0A0A;
   --glass-border: #1A1A1A;
-  --accent-primary: #818CF8;
-  --input-bg: #111111;
+  --accent-primary: #3366FF;
+  --input-bg: #0A0A0A;
   --hover-bg: #111111;
   --nav-border: #1A1A1A;
+  --ambient-glow: 0 0 20px rgba(51, 102, 255, 0.05);
 }
 
 :root[data-theme='light'] {
-  --bg-core: #FDFDFD;
+  --bg-core: #F8FAFC;
   --text-main: #0F172A;
-  --text-muted: #64748B;
+  --text-muted: #475569;
   --glass-bg: #FFFFFF;
-  --glass-border: #E5E7EB;
-  --accent-primary: #059669;
-  --input-bg: #F3F4F6;
-  --hover-bg: #F3F4F6;
-  --nav-border: #E5E7EB;
+  --glass-border: #E2E8F0;
+  --accent-primary: #10B981;
+  --input-bg: #FFFFFF;
+  --hover-bg: #F1F5F9;
+  --nav-border: #E2E8F0;
+  --ambient-glow: 0 0 20px rgba(16, 185, 129, 0.03);
 }
 
 body {
@@ -136,20 +138,45 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--glass-bg);
   border-radius: 24px;
   border: 1px solid var(--glass-border);
-  box-shadow: none;
+  box-shadow: var(--ambient-glow);
   padding: 32px;
   transition: all 0.4s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
 }
 
 :root[data-theme='dark'] .ats-card {
   background: #0A0A0A;
   border: 1px solid #1A1A1A;
+  box-shadow: 0 0 20px rgba(51, 102, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
 }
 
 :root[data-theme='light'] .ats-card {
   background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.03);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.glass::before, .ats-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+.glass > *, .ats-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .glass:hover {
@@ -192,7 +219,13 @@ input:focus, textarea:focus {
   outline: none;
 }
 
-.action-btn {
+@keyframes breathePulse {
+  0% { box-shadow: 0 0 0 0 rgba(51, 102, 255, 0.3); }
+  70% { box-shadow: 0 0 0 12px rgba(51, 102, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(51, 102, 255, 0); }
+}
+
+.action-btn, .pulse-btn {
   background: var(--accent-primary);
   color: #FFFFFF;
   font-size: 1rem;
@@ -203,8 +236,9 @@ input:focus, textarea:focus {
   border-radius: 24px;
   border: 1px solid var(--accent-primary);
   cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s ease-in-out;
   box-shadow: none;
+  animation: breathePulse 2s infinite;
 }
 
 .action-btn:hover:not(:disabled) {
@@ -545,6 +579,7 @@ a.nav-link:hover svg {
 
 .nav-link.active svg {
   stroke: var(--accent-primary);
+  filter: drop-shadow(0 0 8px var(--accent-primary));
 }
 
 .hamburger {

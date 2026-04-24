@@ -20,23 +20,14 @@ import './App.css';
 
 const FluidBackground = () => {
   const canvasRef = useRef(null);
-  const location = useLocation();
-  const path = location.pathname;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let animationFrameId;
+    let animationId;
     let time = 0;
     
-    let mouse = { x: -1000, y: -1000 };
-    const handleMouseMove = (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -46,38 +37,63 @@ const FluidBackground = () => {
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      time += 0.003;
+      const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
 
-      // Color transition from #050505 to #0A0A0A
-      const r = Math.floor(5 + Math.sin(time) * 5); // 5 to 10
-      const g = Math.floor(5 + Math.sin(time) * 5); // 5 to 10
-      const b = Math.floor(5 + Math.sin(time) * 5); // 5 to 10
+      ctx.lineWidth = 1;
       
-      // Draw 3 layered sinusoidal waves
-      for (let w = 0; w < 3; w++) {
-        ctx.fillStyle = `rgb(${r + w*2}, ${g + w*2}, ${b + w*2})`;
+      const numLines = Math.floor(canvas.width / 100);
+      for (let i = 0; i <= canvas.width; i += 100) {
+        ctx.strokeStyle = isLightMode ? '#F1F5F9' : '#1A1A1A';
         ctx.beginPath();
-        for (let i = 0; i <= canvas.width; i += 40) {
-          const y = Math.sin(i * 0.002 + time + w) * (150 + w*50) + canvas.height / 2 + (w * 100);
-          ctx.lineTo(i, y);
-        }
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.lineTo(0, canvas.height);
-        ctx.fill();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
       }
 
-      animationFrameId = requestAnimationFrame(render);
+      if (!isLightMode) {
+        for (let i = 0; i < 5; i++) {
+          const x = (canvas.width / 5) * i + 50 + Math.sin(time + i) * 30;
+          const gradient = ctx.createLinearGradient(x, 0, x, canvas.height);
+          gradient.addColorStop(0, 'rgba(51, 102, 255, 0)');
+          gradient.addColorStop(0.5, 'rgba(168, 85, 247, 0.4)');
+          gradient.addColorStop(1, 'rgba(51, 102, 255, 0)');
+          
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      } else {
+        for (let i = 0; i < 3; i++) {
+          const x = (canvas.width / 3) * i + 100 + Math.sin(time + i) * 20;
+          const gradient = ctx.createLinearGradient(x, 0, x, canvas.height);
+          gradient.addColorStop(0, 'rgba(51, 102, 255, 0)');
+          gradient.addColorStop(0.5, 'rgba(51, 102, 255, 0.15)');
+          gradient.addColorStop(1, 'rgba(51, 102, 255, 0)');
+          
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      time += 0.015;
+      animationId = requestAnimationFrame(render);
     };
     render();
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [path]);
+  }, []);
 
-  return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, opacity: 0.08, pointerEvents: 'none' }} />;
+  return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, pointerEvents: 'none' }} />;
 };
 
 const BentoDashboard = () => {
