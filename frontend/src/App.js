@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 import AIConsultant from './pages/AIConsultant';
+import SynapticFlow from './components/SynapticFlow';
 import LiveOpportunities from './pages/LiveOpportunities';
 import ResumeChecker from './pages/ResumeChecker';
 import MockInterview from './pages/MockInterview';
@@ -307,7 +308,7 @@ function App() {
 
           <Routes>
             <Route index element={<ProtectedRoute><BentoDashboard /></ProtectedRoute>} />
-            <Route path="/consultant" element={<AIConsultant API_URL={API_URL} />} />
+            <Route path="/consultant" element={<SynapticFlow><AIConsultant API_URL={API_URL} /></SynapticFlow>} />
             <Route path="/auth" element={<AuthGateway />} />
             <Route path="/opportunities" element={<ProtectedRoute><LiveOpportunities API_URL={API_URL} /></ProtectedRoute>} />
             <Route path="/resume-checker" element={<ResumeChecker API_URL={API_URL} />} />
