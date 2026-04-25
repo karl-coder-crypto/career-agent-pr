@@ -1,240 +1,306 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function DSASniper({ API_URL }) {
-  const [completed, setCompleted] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dsa-names');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+const TOPICS = ['Arrays','Strings','Hash Table','Two Pointers','Sliding Window','Linked List','Stack','Queue','Backtracking','Trees','Tries','Heaps','Dynamic Programming','Graphs','Greedy','Bit Manipulation'];
+const MNCS = ['Google','Amazon','Microsoft','Meta','Netflix','Adobe','Uber','Goldman Sachs','Atlassian','TCS'];
+const DIFF_COLOR = { Easy: '#10b981', Medium: '#f59e0b', Hard: '#ef4444' };
+const VERDICT_COLOR = { Optimal: '#10b981', Suboptimal: '#f59e0b', Incorrect: '#ef4444' };
 
-  const topics = [
-    'Arrays', 'Strings', 'Hash Table', 'Two Pointers', 'Linked List', 
-    'Stack', 'Queue', 'Sliding Window', 'Backtracking', 'Trees', 
-    'Tries', 'Heaps', 'Dynamic Programming', 'Graphs', 'Greedy', 
-    'Math', 'Bit Manipulation'
-  ];
+const CHEAT_SHEETS = {
+  'Sliding Window': ['Expand right pointer until condition met, shrink left to maintain validity', 'Track window state with a HashMap or counter variable', 'Max/Min window problems use two-pointer + condition check'],
+  'Two Pointers': ['Start pointers at opposite ends for sorted arrays', 'Move the pointer that helps satisfy the target condition', 'Works for palindrome checks, pair sums, and merge operations'],
+  'Hash Table': ['O(1) lookup by trading space for time', 'Store complement/seen values for single-pass solutions', 'Use for frequency counting, grouping, and index mapping'],
+  'Dynamic Programming': ['Define state clearly before coding transitions', 'Bottom-up tabulation avoids recursion stack overflow', 'Optimize space by keeping only relevant previous rows/cols'],
+  'Graphs': ['BFS for shortest path in unweighted graphs, DFS for exploration', 'Union-Find for cycle detection and connected components', 'Topological sort for dependency ordering (Kahn\'s or DFS)'],
+  'Trees': ['Inorder traversal = sorted order for BSTs', 'Use recursion with return values to avoid global state', 'Level-order BFS for problems requiring row-by-row processing'],
+  'Heaps': ['Min-heap for k-th largest, max-heap for k-th smallest', 'Maintain heap of size k for streaming top-k problems', 'Two heaps pattern for median of stream'],
+  'Backtracking': ['Prune early by checking constraints before recursing', 'Pass index + current state to avoid reusing elements', 'State must be reversible — undo choices after recursive call'],
+};
 
-  const mncs = [
-    'Google', 'Amazon', 'Microsoft', 'Netflix', 'Meta', 
-    'Adobe', 'Uber', 'Goldman Sachs', 'Atlassian', 'TCS'
-  ];
+function ScanOverlay() {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+        {[1,2,3].map(i => <div key={i} style={{ position: 'absolute', inset: 0, border: '2px solid rgba(99,102,241,0.6)', borderRadius: '50%', animation: `scanPulse ${1.2 * i}s ease-out infinite`, animationDelay: `${0.25 * i}s` }} />)}
+        <div style={{ position: 'absolute', inset: '38%', background: '#6366f1', borderRadius: '50%', boxShadow: '0 0 24px #6366f1' }} />
+      </div>
+      <p style={{ color: '#6366f1', fontWeight: 700, letterSpacing: '3px', fontSize: '0.85rem', textTransform: 'uppercase' }}>Scanning Interview Intelligence...</p>
+      <style>{`@keyframes scanPulse { 0% { transform:scale(.4); opacity:1; } 100% { transform:scale(2.8); opacity:0; } }`}</style>
+    </div>
+  );
+}
 
-  const [topic, setTopic] = useState(topics[0]);
-  const [company, setCompany] = useState(mncs[0]);
-  const [problemCount, setProblemCount] = useState(5);
-  const [problems, setProblems] = useState([]);
+function ProbabilityBar({ score }) {
+  const color = score >= 80 ? '#ef4444' : score >= 60 ? '#f59e0b' : '#6366f1';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+        <motion.div initial={{ width: 0 }} animate={{ width: `${score}%` }} transition={{ duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: color, borderRadius: '2px' }} />
+      </div>
+      <span style={{ fontSize: '0.72rem', color, fontWeight: 700, minWidth: '32px' }}>{score}%</span>
+    </div>
+  );
+}
+
+function CheatSheet({ topic }) {
+  const tips = CHEAT_SHEETS[topic];
+  if (!tips) return null;
+  return (
+    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+      style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '10px', padding: '12px 14px', marginTop: '12px' }}>
+      <div style={{ fontSize: '0.7rem', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>⚡ Sniper Cheat Sheet — {topic}</div>
+      {tips.map((t, i) => (
+        <div key={i} style={{ display: 'flex', gap: '8px', fontSize: '0.83rem', color: 'var(--text-secondary)', marginBottom: '5px', lineHeight: 1.5 }}>
+          <span style={{ color: '#6366f1', flexShrink: 0 }}>→</span><span>{t}</span>
+        </div>
+      ))}
+    </motion.div>
+  );
+}
+
+function AuditPanel({ API_URL, activeProblem }) {
+  const [code, setCode] = useState('');
+  const [audit, setAudit] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [explanation, setExplanation] = useState(null);
-  const [loadingExplain, setLoadingExplain] = useState(false);
-  const [error, setError] = useState(null);
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    localStorage.setItem('dsa-names', JSON.stringify(completed));
-  }, [completed]);
-
-  const toggleProblem = (title) => {
-    setCompleted(prev => 
-      prev.includes(title) ? prev.filter(pName => pName !== title) : [...prev, title]
-    );
-  };
-
-  const handleSearch = async () => {
+  const runAudit = useCallback(async (c) => {
+    if (!c.trim() || c.trim().length < 20) return;
     setLoading(true);
-    setError(null);
     try {
-      const response = await fetch(`${API_URL}/api/ai/fetch-dsa`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, company, count: problemCount })
+      const res = await fetch(`${API_URL}/api/dsa/audit`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: c, problem: activeProblem })
       });
-      if (response.status === 401) {
-        const errData = await response.json();
-        setError(errData.error || "API Key Missing");
-        setProblems([]);
-        return;
-      }
-      const data = await response.json();
-      setProblems(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setProblems([]);
-      setError("Network Offline");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const d = await res.json();
+      if (res.ok) setAudit(d);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, [API_URL, activeProblem]);
 
-  const handleExplain = async (problemName) => {
-    setLoadingExplain(true);
-    setExplanation({ title: problemName, text: "Generating neural intuition matrices..." });
-    try {
-      const response = await fetch(`${API_URL}/api/explain-dsa`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemName })
-      });
-      const data = await response.json();
-      setExplanation({ title: problemName, text: data.reply });
-    } catch (err) {
-      setExplanation({ title: problemName, text: "Explanation offline." });
-    } finally {
-      setLoadingExplain(false);
-    }
-  };
-
-  const generateLink = (type, prob) => {
-    if (type === 'solve' && prob.leetcode_link) {
-      return prob.leetcode_link;
-    }
-    const encoded = encodeURIComponent(prob.title || 'Two Sum');
-    if (type === 'solve') return `https://leetcode.com/problemset/all/?search=${encoded}`;
-    if (type === 'discuss') return `https://www.youtube.com/results?search_query=${encoded}+leetcode+solution`;
-    return '#';
+  const handleChange = (val) => {
+    setCode(val);
+    setAudit(null);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => runAudit(val), 1800);
   };
 
   return (
-    <div className="layout-col page-fade-in opportunities-page">
-      <div className="header-box">
-        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif' }}>DSA Sniper Dashboard</h1>
-        <p>Unlimited Web-Indexed Architecture Execution Algorithm Tracker.</p>
+    <div style={{ background: 'rgba(12,12,12,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+        <div>
+          <div style={{ fontSize: '0.7rem', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>🔬 Sniper Auditor</div>
+          <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{activeProblem ? `Analyzing: ${activeProblem}` : 'Paste your solution — auto-analysis in 1.8s'}</p>
+        </div>
+        {loading && <div style={{ width: '18px', height: '18px', border: '2px solid rgba(99,102,241,0.3)', borderTop: '2px solid #6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />}
       </div>
 
-      <div className="progress-container glass sniper-stats-card" style={{ padding: '20px', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Lifetime Algorithms Mastered</div>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--success-neon, #00ff88)', textShadow: '0 0 20px var(--success-neon, #00ff88)' }}>
-            {completed.length}
+      <textarea value={code} onChange={e => handleChange(e.target.value)} placeholder={`// Paste your ${activeProblem || 'solution'} here...\n// Auto-audit triggers after 1.8s of inactivity`}
+        style={{ width: '100%', minHeight: '180px', fontFamily: '"JetBrains Mono","Fira Code","Consolas",monospace', fontSize: '0.85rem', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(99,102,241,0.25)', color: '#e2e8f0', borderRadius: '10px', padding: '14px', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }} />
+
+      <AnimatePresence>
+        {audit && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              {[['Time', audit.time_complexity, '#6366f1'], ['Space', audit.space_complexity, '#a855f7'], ['Verdict', audit.verdict, VERDICT_COLOR[audit.verdict]]].map(([l, v, c]) => (
+                <div key={l} style={{ background: `${c}12`, border: `1px solid ${c}30`, borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '3px' }}>{l}</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 700, color: c, fontFamily: '"JetBrains Mono",monospace' }}>{v}</div>
+                </div>
+              ))}
+            </div>
+
+            {!audit.is_optimal && audit.optimization_hint && (
+              <div style={{ padding: '12px 14px', background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '10px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#f59e0b', textTransform: 'uppercase', marginBottom: '6px' }}>💡 Optimization Vector</div>
+                <p style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6 }}>{audit.optimization_hint}</p>
+              </div>
+            )}
+
+            {audit.edge_cases?.length > 0 && (
+              <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#ef4444', textTransform: 'uppercase', marginBottom: '8px' }}>⚠️ Hidden Edge Cases</div>
+                {audit.edge_cases.map((ec, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '8px', fontSize: '0.85rem', marginBottom: '5px' }}>
+                    <span style={{ color: '#ef4444', flexShrink: 0 }}>#{i + 1}</span><span style={{ color: 'var(--text-secondary)' }}>{ec}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {audit.mastery_unlocked && (
+              <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ padding: '12px', background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', borderRadius: '10px', textAlign: 'center', color: '#10b981', fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 0 20px rgba(16,185,129,0.15)' }}>
+                🏆 MASTERY UNLOCKED — Optimal Solution Confirmed
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+function DSASniper({ API_URL }) {
+  const [mastered, setMastered] = useState(() => { try { return JSON.parse(localStorage.getItem('dsa-mastered') || '[]'); } catch { return []; } });
+  const [topic, setTopic] = useState(TOPICS[0]);
+  const [company, setCompany] = useState(MNCS[0]);
+  const [count, setCount] = useState(5);
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [explanation, setExplanation] = useState(null);
+  const [explainLoading, setExplainLoading] = useState(false);
+  const [activeProblem, setActiveProblem] = useState('');
+  const [showCheat, setShowCheat] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => { localStorage.setItem('dsa-mastered', JSON.stringify(mastered)); }, [mastered]);
+
+  const toggleMastered = (title) => setMastered(p => p.includes(title) ? p.filter(t => t !== title) : [...p, title]);
+
+  const handleSearch = async () => {
+    setLoading(true); setError(null); setProblems([]);
+    try {
+      const res = await fetch(`${API_URL}/api/ai/fetch-dsa`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic, company, count }) });
+      if (res.status === 401) { const d = await res.json(); setError(d.error); return; }
+      const d = await res.json();
+      setProblems(Array.isArray(d) ? d : []);
+    } catch (e) { setError('Network Offline'); }
+    setLoading(false);
+  };
+
+  const handleExplain = async (title) => {
+    setExplainLoading(true);
+    setExplanation({ title, text: 'Generating neural intuition...' });
+    try {
+      const res = await fetch(`${API_URL}/api/explain-dsa`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problemName: title }) });
+      const d = await res.json();
+      setExplanation({ title, text: d.reply || 'Analysis complete.' });
+    } catch (e) { setExplanation({ title, text: 'Explanation offline.' }); }
+    setExplainLoading(false);
+  };
+
+  const inp = { background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box' };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0 20px 20px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      {loading && <ScanOverlay />}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>DSA Sniper</h1>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>2026 Pattern Intelligence · Big-O Auditor · Mastery Engine</p>
+        </div>
+        <motion.div animate={{ boxShadow: ['0 0 10px rgba(16,185,129,0.3)', '0 0 25px rgba(16,185,129,0.6)', '0 0 10px rgba(16,185,129,0.3)'] }} transition={{ repeat: Infinity, duration: 2 }}
+          style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid #10b981', borderRadius: '12px', padding: '10px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', color: '#10b981', textTransform: 'uppercase', letterSpacing: '1px' }}>Mastered</div>
+          <div style={{ fontSize: '2rem', fontWeight: 700, color: '#10b981', lineHeight: 1 }}>{mastered.length}</div>
+        </motion.div>
+      </div>
+
+      <div style={{ background: 'rgba(12,12,12,0.6)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '20px', marginBottom: '20px', flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+          <div>
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>Topic</label>
+            <select value={topic} onChange={e => setTopic(e.target.value)} style={inp}>
+              {TOPICS.map(t => <option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>Target Company</label>
+            <select value={company} onChange={e => setCompany(e.target.value)} style={inp}>
+              {MNCS.map(c => <option key={c}>{c}</option>)}
+            </select>
           </div>
         </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '8px' }}>
+            Problem Count: <span style={{ color: '#6366f1', fontWeight: 700 }}>{count}</span>
+          </label>
+          <input type="range" min="3" max="20" value={count} onChange={e => setCount(Number(e.target.value))} style={{ width: '100%', accentColor: '#6366f1', cursor: 'pointer' }} />
+        </div>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button onClick={handleSearch} disabled={loading} className="action-btn neon-glow-btn" style={{ padding: '11px 28px', fontWeight: 700 }}>
+            🎯 Deploy Sniper Search
+          </button>
+          <button onClick={() => setShowCheat(p => !p)} style={{ padding: '11px 16px', background: showCheat ? 'rgba(99,102,241,0.2)' : 'transparent', border: `1px solid ${showCheat ? '#6366f1' : 'var(--border)'}`, borderRadius: '10px', color: showCheat ? '#6366f1' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+            📋 Cheat Sheet
+          </button>
+        </div>
+        <AnimatePresence>{showCheat && <CheatSheet topic={topic} />}</AnimatePresence>
       </div>
 
-      <div className="glass filter-container" style={{ padding: '20px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-         <div className="input-group-row" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-          <select value={topic} onChange={e => setTopic(e.target.value)} className="glass-dropdown" style={{ flex: '1', minWidth: '200px', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '16px', fontSize: '1rem', outline: 'none' }}>
-            {topics.map(t => <option key={t} value={t} style={{background: 'var(--bg)'}}>{t}</option>)}
-          </select>
-          <select value={company} onChange={e => setCompany(e.target.value)} className="glass-dropdown" style={{ flex: '1', minWidth: '200px', background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '16px', fontSize: '1rem', outline: 'none' }}>
-            {mncs.map(c => <option key={c} value={c} style={{background: 'var(--bg)'}}>{c}</option>)}
-          </select>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 5px' }}>
-          <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Number of Problems: <span style={{ color: 'var(--accent-primary)' }}>{problemCount}</span></label>
-          <input 
-            type="range" 
-            min="1" 
-            max="20" 
-            value={problemCount} 
-            onChange={e => setProblemCount(Number(e.target.value))} 
-            style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
-          />
-        </div>
-        <button onClick={handleSearch} className="action-btn neon-glow-btn" disabled={loading} style={{ alignSelf: 'flex-end', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {loading ? <><span style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Fetching JSON Matrices...</> : 'Deploy Sniper Search'}
-        </button>
-      </div>
-
-      <div className="dsa-grid" style={{ minHeight: '200px', position: 'relative' }}>
-        <AnimatePresence mode="wait">
-          {error ? (
-             <motion.div 
-               key="error"
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-               style={{ textAlign: 'center', width: '100%', padding: '30px' }}
-             >
-               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--accent-secondary)', marginBottom: '15px' }}>{error}</h3>
-               <button className="action-btn" onClick={handleSearch} style={{ background: 'transparent', border: '1px solid var(--accent-secondary)', color: 'var(--accent-secondary)', padding: '10px 20px', fontSize: '0.9rem' }}>Override & Retry</button>
-             </motion.div>
-          ) : problems.length === 0 && !loading ? (
-             <motion.div 
-               key="empty"
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-               style={{ textAlign: 'center', width: '100%', padding: '30px' }}
-             >
-               <p style={{ opacity: 0.8, marginBottom: '20px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.2rem', color: 'var(--text-primary)' }}>
-                 Target Not Found - Re-scanning...
-               </p>
-               <button className="action-btn" onClick={handleSearch} style={{ background: 'transparent', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '10px 20px', fontSize: '0.9rem' }}>Retry Search</button>
-             </motion.div>
-          ) : problems.length > 0 ? (
-            <motion.div 
-               key="results"
-               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-               className="glass dsa-card" style={{ padding: '20px', marginBottom: '20px' }}
-            >
-              <h2 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-primary)', marginBottom: '20px', fontSize: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '15px' }}>Sniper Results</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <AnimatePresence>
-                  {problems.map((prob, idx) => (
-                    <motion.div 
-                      key={idx} 
-                      initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
-                      className="dsa-problem-row glass" 
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', flexWrap: 'wrap', gap: '20px', border: '1px solid var(--border)' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px', flex: '1', minWidth: '250px' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={completed.includes(prob.title)} 
-                          onChange={() => toggleProblem(prob.title)} 
-                          className="dsa-checkbox"
-                          style={{ accentColor: 'var(--accent-primary)', width: '22px', height: '22px', marginTop: '4px', cursor: 'pointer' }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column', fontFamily: '"Inter", sans-serif', gap: '6px' }}>
-                          <span style={{ fontSize: '1.15rem', color: completed.includes(prob.title) ? 'var(--text-secondary)' : 'var(--text-primary)', textDecoration: completed.includes(prob.title) ? 'line-through' : 'none', fontWeight: '600' }}>
-                            {prob.title}
-                          </span>
-                          <span style={{ fontSize: '0.85rem', color: prob.difficulty === 'Easy' ? '#00ff88' : prob.difficulty === 'Medium' ? 'var(--accent-primary)' : 'var(--accent-secondary)', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            {prob.difficulty} <span style={{ color: 'var(--text-secondary)', margin: '0 5px' }}>•</span> {prob.topic}
-                          </span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                            {prob.company_context}
-                          </span>
+      <div style={{ display: 'grid', gridTemplateColumns: problems.length > 0 ? '1fr 420px' : '1fr', gap: '20px', flex: 1, minHeight: 0 }}>
+        <div style={{ overflowY: 'auto' }}>
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div key="err" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ textAlign: 'center', padding: '40px', opacity: 0.7 }}>
+                <p style={{ color: '#ef4444', marginBottom: '12px' }}>{error}</p>
+                <button onClick={handleSearch} className="action-btn" style={{ fontSize: '0.85rem' }}>Retry</button>
+              </motion.div>
+            )}
+            {!error && problems.length === 0 && !loading && (
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: '16px', opacity: 0.35 }}>
+                <div style={{ fontSize: '4rem' }}>🎯</div>
+                <p>Select topic + company and deploy the sniper search</p>
+              </motion.div>
+            )}
+            {problems.length > 0 && (
+              <motion.div key="results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {problems.map((prob, idx) => (
+                  <motion.div key={idx} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.04 }}
+                    style={{ background: 'rgba(12,12,12,0.65)', backdropFilter: 'blur(16px)', border: `1px solid ${activeProblem === prob.title ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '14px', padding: '18px', cursor: 'pointer' }}
+                    onClick={() => setActiveProblem(activeProblem === prob.title ? '' : prob.title)}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={mastered.includes(prob.title)} onChange={e => { e.stopPropagation(); toggleMastered(prob.title); }}
+                        style={{ width: '18px', height: '18px', marginTop: '2px', accentColor: '#10b981', flexShrink: 0, cursor: 'pointer' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.95rem', textDecoration: mastered.includes(prob.title) ? 'line-through' : 'none', opacity: mastered.includes(prob.title) ? 0.5 : 1 }}>{prob.title}</span>
+                          <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: `${DIFF_COLOR[prob.difficulty]}18`, color: DIFF_COLOR[prob.difficulty], border: `1px solid ${DIFF_COLOR[prob.difficulty]}30`, fontWeight: 700 }}>{prob.difficulty}</span>
+                          {prob.pattern && <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.25)' }}>{prob.pattern}</span>}
+                        </div>
+                        {prob.company_context && <p style={{ margin: '0 0 8px', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{prob.company_context}</p>}
+                        {prob.probability !== undefined && (
+                          <div style={{ marginBottom: '10px' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>2026 Probability — {company}</div>
+                            <ProbabilityBar score={prob.probability} />
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={e => { e.stopPropagation(); window.open(prob.leetcode_link || `https://leetcode.com/problems/${prob.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}/`, '_blank'); }} className="action-btn neon-glow-btn" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>🚀 Solve</button>
+                          <button onClick={e => { e.stopPropagation(); handleExplain(prob.title); }} className="copy-btn" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>💡 AI Approach</button>
+                          <button onClick={e => { e.stopPropagation(); window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(prob.title + ' leetcode')}`, '_blank'); }} className="copy-btn" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>📑 Discuss</button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                        <button className="power-btn" style={{ padding: '10px 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', fontWeight: '500' }} onClick={() => window.open(generateLink('discuss', prob), '_blank')}>📑 Discuss</button>
-                        <button className="power-btn" style={{ padding: '10px 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', fontWeight: '500' }} onClick={() => handleExplain(prob.title)}>💡 AI Approach</button>
-                        <button className="power-btn solve" style={{ padding: '10px 15px', background: 'rgba(0, 255, 255, 0.1)', border: '1px solid #00FFFF', color: '#00FFFF', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', textShadow: '0 0 8px rgba(0,255,255,0.4)', transition: 'all 0.3s ease', boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)' }} onClick={() => window.open(generateLink('solve', prob), '_blank')}>🚀 Solve on LeetCode</button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-        
-        {loading && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(5,5,8,0.6)', backdropFilter: 'blur(8px)', zIndex: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '16px', border: '1px solid var(--accent-primary)' }}>
-               <p className="processing-text" style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', fontWeight: 'bold', fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '1px' }}>Scanning Aegis Databases...</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {problems.length > 0 && (
+          <div style={{ overflowY: 'auto' }}>
+            <AuditPanel API_URL={API_URL} activeProblem={activeProblem} />
           </div>
         )}
       </div>
 
       <AnimatePresence>
         {explanation && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="explanation-modal-overlay" 
-            onClick={() => !loadingExplain && setExplanation(null)}
-            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="explanation-modal glass" 
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+            onClick={() => !explainLoading && setExplanation(null)}>
+            <motion.div initial={{ scale: 0.88, y: 24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.88 }}
               onClick={e => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: '650px', maxHeight: '85vh', overflowY: 'auto', padding: '30px', border: '1px solid var(--accent-primary)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
-            >
-               <h3 style={{ borderBottom: '1px solid rgba(0, 210, 255, 0.3)', paddingBottom: '15px', marginBottom: '20px', fontFamily: '"Space Grotesk", sans-serif', color: 'var(--accent-primary)', fontSize: '1.4rem' }}>{explanation.title}</h3>
-               <div className="explanation-content" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--text-primary)', fontFamily: '"Inter", sans-serif', fontSize: '0.95rem' }}>
-                  {explanation.text}
-               </div>
-               <button className="action-btn" onClick={() => setExplanation(null)} style={{ marginTop: '25px', width: '100%', padding: '14px', background: 'var(--accent-primary)', color: '#000', fontWeight: 'bold' }} disabled={loadingExplain}>
-                 DISMISS
-               </button>
+              style={{ width: '100%', maxWidth: '640px', maxHeight: '85vh', overflowY: 'auto', background: 'rgba(10,10,10,0.97)', backdropFilter: 'blur(24px)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '16px', padding: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, color: '#6366f1', fontSize: '1.1rem' }}>{explanation.title}</h3>
+                <button onClick={() => setExplanation(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '1.4rem', cursor: 'pointer' }}>✕</button>
+              </div>
+              <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{explanation.text}</div>
             </motion.div>
           </motion.div>
         )}
