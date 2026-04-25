@@ -17,6 +17,12 @@
   --hover-bg: #111111;
   --nav-border: #1A1A1A;
   --ambient-glow: 0 0 20px rgba(51, 102, 255, 0.05);
+
+  --bg: #000000;
+  --card-bg: rgba(15, 15, 15, 0.4);
+  --text-primary: #FFFFFF;
+  --text-secondary: #94A3B8;
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme='light'] {
@@ -30,12 +36,18 @@
   --hover-bg: #F1F5F9;
   --nav-border: #E2E8F0;
   --ambient-glow: 0 0 20px rgba(16, 185, 129, 0.03);
+
+  --bg: #F8FAFC;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --border: rgba(0, 0, 0, 0.06);
 }
 
 body {
   font-family: 'Space Grotesk', sans-serif;
-  background: var(--bg-core);
-  color: var(--text-main);
+  background: var(--bg);
+  color: var(--text-primary);
   overflow-x: hidden;
   min-height: 100vh;
 }
@@ -44,9 +56,12 @@ body {
   font-family: 'Space Grotesk', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, p {
   font-family: 'Space Grotesk', sans-serif;
-  color: var(--text-main);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
@@ -75,7 +90,7 @@ h1, h2, h3, h4, h5, h6 {
   right: 40px;
   background: transparent;
   border: none;
-  color: var(--text-main);
+  color: var(--text-primary);
   cursor: pointer;
   z-index: 10;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -84,6 +99,12 @@ h1, h2, h3, h4, h5, h6 {
 .theme-toggle:hover {
   transform: scale(1.1);
   color: var(--accent-primary);
+}
+
+:root[data-theme='light'] .theme-toggle {
+  background: #6366F1 !important;
+  color: #FFFFFF !important;
+  border-color: #6366F1 !important;
 }
 
 .fluid-bg-container {
@@ -135,9 +156,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glass {
-  background: var(--glass-bg);
+  background: var(--card-bg);
   border-radius: 24px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
   box-shadow: var(--ambient-glow);
   padding: 32px;
   transition: all 0.4s ease-in-out;
@@ -197,8 +218,8 @@ h1, h2, h3, h4, h5, h6 {
 
 input, textarea {
   background: var(--input-bg);
-  color: var(--text-main);
-  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 16px 24px;
   font-size: 1rem;
@@ -259,7 +280,7 @@ input:focus, textarea:focus {
 
 .archive-section h2 {
   font-size: 1.2rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -273,12 +294,12 @@ input:focus, textarea:focus {
 .data-table th, .data-table td {
   padding: 18px 20px;
   text-align: left;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table th {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
   background: rgba(0,0,0,0.03);
 }
@@ -315,7 +336,7 @@ input:focus, textarea:focus {
 .empty-state {
   padding: 30px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .analysis-text {
@@ -323,7 +344,7 @@ input:focus, textarea:focus {
   line-height: 1.6;
   white-space: pre-wrap;
   max-width: 480px;
-  color: var(--text-main);
+  color: var(--text-primary);
   background: rgba(168, 85, 247, 0.08);
   padding: 14px;
   border-radius: 8px;
@@ -333,7 +354,7 @@ input:focus, textarea:focus {
 
 .processing-text {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-style: italic;
   animation: pulseText 1.5s infinite;
 }
@@ -358,8 +379,8 @@ input:focus, textarea:focus {
   top: -20px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--text-main);
-  color: var(--bg-core);
+  background: var(--text-primary);
+  color: var(--bg);
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.7rem;
@@ -399,12 +420,12 @@ input:focus, textarea:focus {
   top: 15px;
   right: 18px;
   font-size: 1.5rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
 .close-btn:hover {
-  color: var(--text-main);
+  color: var(--text-primary);
 }
 
 .agent-msg {
@@ -519,7 +540,7 @@ input:focus, textarea:focus {
 .sidebar {
   width: 260px;
   background: transparent;
-  border-right: 1px solid var(--nav-border);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: 32px 24px;
@@ -533,7 +554,7 @@ input:focus, textarea:focus {
   font-weight: 800;
   display: flex;
   align-items: center;
-  color: var(--text-main);
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 2px;
 }
@@ -546,7 +567,7 @@ input:focus, textarea:focus {
 
 .nav-link {
   text-decoration: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-weight: 600;
   padding: 16px 24px;
   border-radius: 24px;
@@ -557,19 +578,19 @@ input:focus, textarea:focus {
 }
 
 a.nav-link svg {
-  stroke: var(--text-muted);
+  stroke: var(--text-secondary);
   stroke-width: 1.5;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-link:hover {
   background: var(--hover-bg);
-  color: var(--text-main);
+  color: var(--text-primary);
   transform: translateX(4px);
 }
 
 a.nav-link:hover svg {
-  stroke: var(--text-main);
+  stroke: var(--text-primary);
 }
 
 .nav-link.active {
@@ -587,9 +608,9 @@ a.nav-link:hover svg {
   position: fixed;
   top: 20px;
   left: 20px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   padding: 10px;
   border-radius: 8px;
   z-index: 1000;
@@ -646,8 +667,8 @@ a.nav-link:hover svg {
   justify-content: space-between;
   gap: 25px;
   padding: 25px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 16px;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -667,7 +688,7 @@ a.nav-link:hover svg {
 
 .job-company {
   font-size: 1.5rem;
-  color: var(--text-main);
+  color: var(--text-primary);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
@@ -686,7 +707,7 @@ a.nav-link:hover svg {
 
 .job-role {
   font-size: 1.05rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -755,13 +776,13 @@ a.nav-link:hover svg {
 .score-num {
   font-size: 1.8rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .score-label {
   font-size: 0.65rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -810,7 +831,7 @@ a.nav-link:hover svg {
   padding-left: 20px;
   position: relative;
   font-size: 0.95rem;
-  color: var(--text-main);
+  color: var(--text-primary);
   line-height: 1.5;
 }
 
@@ -833,8 +854,8 @@ a.nav-link:hover svg {
   margin: 0 auto;
   padding: 0 !important;
   overflow: hidden;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
 }
 
 .chat-history {
@@ -852,7 +873,7 @@ a.nav-link:hover svg {
   display: flex;
   gap: 15px;
   background: rgba(0, 0, 0, 0.2);
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--border);
 }
 
 .chat-input-area input {
@@ -883,14 +904,14 @@ a.nav-link:hover svg {
 
 .message-bubble.user {
   background: var(--accent-primary);
-  color: var(--bg-core);
+  color: var(--bg);
   border-bottom-right-radius: 4px;
 }
 
 .message-bubble.bot {
   background: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.3);
-  color: var(--text-main);
+  color: var(--text-primary);
   border-bottom-left-radius: 4px;
 }
 
@@ -964,13 +985,13 @@ a.nav-link:hover svg {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
 }
 .copy-btn {
   background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: var(--text-main);
+  color: var(--text-primary);
   padding: 5px 12px;
   border-radius: 6px;
   cursor: pointer;
@@ -982,14 +1003,14 @@ a.nav-link:hover svg {
 }
 .char-count {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-align: right;
   margin-top: -10px;
   margin-bottom: 15px;
 }
 .outreach-body {
   font-size: 0.95rem;
-  color: var(--text-main);
+  color: var(--text-primary);
   line-height: 1.6;
 }
 @media (max-width: 800px) {
@@ -1125,8 +1146,8 @@ a.nav-link:hover svg {
 
 .glass-dropdown {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   padding: 12px 15px;
   border-radius: 8px;
   font-size: 1rem;
@@ -1162,8 +1183,8 @@ a.nav-link:hover svg {
 }
 .power-btn {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
@@ -1242,10 +1263,10 @@ a.nav-link:hover svg {
 }
 .glass-input {
   background: rgba(255,255,255,0.05);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 15px;
-  color: var(--text-main);
+  color: var(--text-primary);
   font-size: 1rem;
   width: 100%;
   transition: 0.3s;
@@ -1322,8 +1343,8 @@ a.nav-link:hover svg {
 
 .filter-tabs button {
   background: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -1344,8 +1365,8 @@ a.nav-link:hover svg {
   flex-direction: column;
   justify-content: space-between;
   padding: 24px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 24px;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1377,7 +1398,7 @@ a.nav-link:hover svg {
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border-radius: 24px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -1505,7 +1526,7 @@ a.nav-link:hover svg {
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border-radius: 24px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
   padding: 24px;
   cursor: pointer;
   display: flex;

@@ -146,11 +146,11 @@ function SkillArchitect({ API_URL }) {
               {results.resources.map((res, i) => (
                 <div key={i} className="glass masonry-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <h3 style={{ fontSize: '1.2rem', margin: 0, paddingRight: '10px', color: 'var(--text-main)' }}>{res.title}</h3>
+                    <h3 style={{ fontSize: '1.2rem', margin: 0, paddingRight: '10px', color: 'var(--text-primary)' }}>{res.title}</h3>
                     {res.cost === 'Free' && <span className="neon-badge free">Free</span>}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)', fontWeight: 'bold' }}>{res.creator}</div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{res.why_this_resource}</div>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{res.why_this_resource}</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '0.8rem', opacity: 0.8, marginTop: '5px' }}>
                      <span style={{ background:'rgba(255,255,255,0.1)', padding:'4px 8px', borderRadius:'4px' }}>⭐ {res.rating}</span>
                      <span style={{ background:'rgba(255,255,255,0.1)', padding:'4px 8px', borderRadius:'4px' }}>🕒 {res.duration}</span>
@@ -173,7 +173,7 @@ function SkillArchitect({ API_URL }) {
                {results.practiceLabs.map((lab, i) => (
                  <div key={i} className="glass masonry-card" style={{ padding: '15px' }}>
                     <h4 style={{ marginBottom: '10px' }}>{lab.title}</h4>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px' }}>{lab.description}</p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>{lab.description}</p>
                     <button className="power-btn solve" onClick={() => window.open(lab.link, '_blank')}>Launch Sequence</button>
                  </div>
                ))}
@@ -193,19 +193,19 @@ function SkillArchitect({ API_URL }) {
                 <div key={skillName} className="glass vault-card" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center' }}>
                   <CircularProgress percent={pct} />
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: '0 0 15px 0', color: 'var(--text-main)', fontSize: '1.4rem' }}>{skillName}</h3>
+                    <h3 style={{ margin: '0 0 15px 0', color: 'var(--text-primary)', fontSize: '1.4rem' }}>{skillName}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                          <input type="checkbox" className="dsa-checkbox" checked={phases.fundamentals} onChange={() => togglePhase(skillName, 'fundamentals')} />
-                         <span style={{ fontSize: '0.95rem', color: phases.fundamentals ? 'var(--text-muted)' : 'var(--text-main)' }}>Phase 1: Fundamentals</span>
+                         <span style={{ fontSize: '0.95rem', color: phases.fundamentals ? 'var(--text-secondary)' : 'var(--text-primary)' }}>Phase 1: Fundamentals</span>
                       </label>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                          <input type="checkbox" className="dsa-checkbox" checked={phases.advanced} onChange={() => togglePhase(skillName, 'advanced')} />
-                         <span style={{ fontSize: '0.95rem', color: phases.advanced ? 'var(--text-muted)' : 'var(--text-main)' }}>Phase 2: Advanced Concepts</span>
+                         <span style={{ fontSize: '0.95rem', color: phases.advanced ? 'var(--text-secondary)' : 'var(--text-primary)' }}>Phase 2: Advanced Concepts</span>
                       </label>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                          <input type="checkbox" className="dsa-checkbox" checked={phases.capstone} onChange={() => togglePhase(skillName, 'capstone')} />
-                         <span style={{ fontSize: '0.95rem', color: phases.capstone ? 'var(--text-muted)' : 'var(--text-main)' }}>Phase 3: Capstone Project</span>
+                         <span style={{ fontSize: '0.95rem', color: phases.capstone ? 'var(--text-secondary)' : 'var(--text-primary)' }}>Phase 3: Capstone Project</span>
                       </label>
                     </div>
                   </div>

@@ -110,7 +110,7 @@ function AuthGateway() {
            <h1 style={{ color: 'var(--accent-secondary)', textShadow: '0 0 10px rgba(117, 219, 255, 0.4)' }}>
              {isLogin ? 'Gateway Access' : 'Initialize Identity'}
            </h1>
-           <p style={{ color: 'var(--text-muted)' }}>Authenticate natively to enable Cloud Firestore sync nodes.</p>
+           <p style={{ color: 'var(--text-secondary)' }}>Authenticate natively to enable Cloud Firestore sync nodes.</p>
         </div>
 
         {error && <div className="auth-error glass">{error}</div>}
@@ -162,7 +162,7 @@ function AuthGateway() {
         </AnimatePresence>
 
         <div style={{ marginTop: '25px', textAlign: 'center' }}>
-          <span style={{ color: 'var(--text-muted)' }}>
+          <span style={{ color: 'var(--text-secondary)' }}>
             {isLogin ? 'No active cloud matrix? ' : 'Already mapped within the vault? '}
           </span>
           <span onClick={() => { setIsLogin(!isLogin); setError(''); setOtpMode(false); }} style={{ color: 'var(--accent-secondary)', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}>

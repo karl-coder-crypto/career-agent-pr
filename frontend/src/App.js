@@ -245,7 +245,7 @@ function App() {
       )}
 
       <div className={`App dashboard-container ${isAppLoaded ? 'fade-in-up' : 'hidden'}`}>
-        <button className="theme-toggle" onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '24px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', fontSize: '14px', fontWeight: 'bold' }}>
+        <button className="theme-toggle" onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '24px', background: 'var(--card-bg)', border: '1px solid var(--border)', fontSize: '14px', fontWeight: 'bold' }}>
           {theme === 'dark' ? '☀️ Zen Light' : '🌙 Zen Dark'}
         </button>
         <Sidebar />
@@ -305,13 +305,13 @@ function App() {
           {isChatOpen && (
             <motion.div 
                initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-               ref={chatRef} className="chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '24px', boxShadow: 'none' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px', flexShrink: 0 }}>
-                <h4 style={{ margin: 0, color: 'var(--text-main)', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '600' }}>JARVIS</h4>
+               ref={chatRef} className="chat-window global-chat-popover" onMouseDown={(e) => e.stopPropagation()} style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '24px', overflow: 'hidden', width: '380px', height: '500px', display: 'flex', flexDirection: 'column', padding: '24px', boxShadow: 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 10px 0', borderBottom: '1px solid var(--border)', paddingBottom: '12px', flexShrink: 0 }}>
+                <h4 style={{ margin: 0, color: 'var(--text-primary)', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1.4rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: '600' }}>JARVIS</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>A-</button>
-                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>A+</button>
-                  <div onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.6rem', lineHeight: '1', padding: '0 5px' }}>&times;</div>
+                  <button onClick={() => setFontSize(f => Math.max(14, f - 1))} style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>A-</button>
+                  <button onClick={() => setFontSize(f => Math.min(22, f + 1))} style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '8px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>A+</button>
+                  <div onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} style={{ color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.6rem', lineHeight: '1', padding: '0 5px' }}>&times;</div>
                 </div>
               </div>
               <div className="guide-messages-container scroll-cyan" style={{ flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', padding: '10px 5px', scrollBehavior: 'smooth' }}>
@@ -319,7 +319,7 @@ function App() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={i} className={`message-wrapper ${msg.sender}`} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
                     <div 
                       className={`message-bubble guide ${msg.sender}`} 
-                      style={{ background: msg.sender === 'user' ? 'var(--input-bg)' : 'var(--bg-core)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '16px 24px', borderRadius: '24px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '400', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                      style={{ background: msg.sender === 'user' ? 'var(--input-bg)' : 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '16px 24px', borderRadius: '24px', maxWidth: '85%', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, lineHeight: '1.6', fontWeight: '400', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                     >
                       {msg.sender === 'bot' && msg.isNew ? (
                          <TypewriterText text={msg.text} formatFn={formatTextWithLinks} onDone={() => { msg.isNew = false; }} />
@@ -331,7 +331,7 @@ function App() {
                 ))}
                 {isTyping && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="message-wrapper bot" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'var(--bg-core)', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '400', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                    <div className="message-bubble guide bot typing-indicator" style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: `${fontSize}px`, fontWeight: '400', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                       <span className="spinner" style={{ display: 'inline-block', animation: 'spinPoly 2s linear infinite' }}>⚙️</span> Processing...
                     </div>
                   </motion.div>
@@ -345,9 +345,9 @@ function App() {
                   onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
                   placeholder="Ask JARVIS..."
                   disabled={isTyping}
-                  style={{ flexGrow: 1, background: 'var(--input-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-main)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: 'none' }}
+                  style={{ flexGrow: 1, background: 'var(--input-bg)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '16px 24px', borderRadius: '24px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '1rem', fontWeight: '500', outline: 'none', transition: 'border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: 'none' }}
                   onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
                 />
                 <button onClick={handleChatSubmit} disabled={isTyping || !chatInput.trim()} className="action-btn" style={{ background: 'var(--accent-primary)', border: '1px solid var(--accent-primary)', color: '#FFFFFF', padding: '16px 32px', borderRadius: '24px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>SEND</button>
               </div>

@@ -75,7 +75,7 @@ function NetworkingHub({ API_URL }) {
   return (
     <div className="layout-col page-fade-in opportunities-page">
       <div className="header-box" style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif', display: 'flex', alignItems: 'center', gap: '15px', color: 'var(--text-main)' }}>
+        <h1 style={{ fontFamily: '"Space Grotesk", sans-serif', display: 'flex', alignItems: 'center', gap: '15px', color: 'var(--text-primary)' }}>
           <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5c-1.1 0-2 .9-2 2v4"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
           Networking Hub
         </h1>
@@ -83,7 +83,7 @@ function NetworkingHub({ API_URL }) {
       </div>
 
       <div className="glass panel" style={{ marginBottom: '30px', border: '1px solid var(--accent-primary)', boxShadow: '0 0 20px rgba(0,255,255,0.05)' }}>
-        <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-main)', marginBottom: '20px', fontSize: '1.4rem' }}>Smart Connections Engine</h3>
+        <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-primary)', marginBottom: '20px', fontSize: '1.4rem' }}>Smart Connections Engine</h3>
         <div className="input-group-row">
           <input 
             type="text" 
@@ -146,12 +146,12 @@ function NetworkingHub({ API_URL }) {
                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} key={i} className="profile-card">
                            <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', margin: '0 0 10px 0', fontSize: '16px', color: 'var(--text-main)' }}>{p.name}</h3>
+                               <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', margin: '0 0 10px 0', fontSize: '16px', color: 'var(--text-primary)' }}>{p.name}</h3>
                                <span style={{ background: 'var(--input-bg)', color: 'var(--accent-primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', border: '1px solid var(--accent-primary)' }}>{p.match_score}</span>
                             </div>
-                            <p style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>{p.current_role}</p>
+                            <p style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px', lineHeight: '1.5' }}>{p.current_role}</p>
                           </div>
-                          <button onClick={() => window.open(p.profile_url, '_blank')} className="action-btn" style={{ background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-main)', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '10px', borderRadius: '24px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                          <button onClick={() => window.open(p.profile_url, '_blank')} className="action-btn" style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-primary)', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '10px', borderRadius: '24px', cursor: 'pointer', fontFamily: '"Space Grotesk", sans-serif', fontWeight: '600', transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> View Profile
                           </button>
                        </motion.div>
@@ -162,8 +162,8 @@ function NetworkingHub({ API_URL }) {
          )}
       </AnimatePresence>
 
-      <div className="glass panel" style={{ border: '1px solid var(--glass-border)' }}>
-        <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-main)', marginBottom: '20px', fontSize: '1.4rem' }}>Outreach Generator</h3>
+      <div className="glass panel" style={{ border: '1px solid var(--border)' }}>
+        <h3 style={{ fontFamily: '"Space Grotesk", sans-serif', color: 'var(--text-primary)', marginBottom: '20px', fontSize: '1.4rem' }}>Outreach Generator</h3>
         <div className="input-group-row">
           <input 
             type="text" 
@@ -216,7 +216,7 @@ function NetworkingHub({ API_URL }) {
             </div>
             <div className="outreach-body">
               <strong>Subject:</strong> {outreachData.email.subject}
-              <hr style={{ borderColor: 'var(--glass-border)', margin: '10px 0' }}/>
+              <hr style={{ borderColor: 'var(--border)', margin: '10px 0' }}/>
               <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{outreachData.email.body}</pre>
             </div>
           </div>
