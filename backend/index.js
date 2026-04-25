@@ -164,30 +164,43 @@ Return strict JSON (no markdown) with keys:
 });
 
 app.post('/api/get-live-jobs', async (req, res) => {
-    const { skills, role, jobType, duration, location } = req.body;
+    const { skills, role, jobType, duration, location, workMode } = req.body;
     
     if (process.env.GEMINI_API_KEY) {
         try {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash",
-                generationConfig: { responseMimeType: "application/json" }
-            });
-            const systemPrompt = `Search the web for the latest ${jobType} for ${role} with skills ${skills}. Avoid referencing offline indices if possible. Return a JSON list of 5-8 real results. For each, include precisely: companyName (string), role (string), stipend (string representing Stipend/Salary), duration (string linking to ${duration}), and url (string linking a DIRECT APPLY URL from sites like LinkedIn, Internshala, or Company Career pages).`;
-            const result = await model.generateContent(systemPrompt);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const prompt = `You are a 2026 job market intelligence engine. Search for real ${jobType} openings for "${role}" requiring skills: ${skills}, location: ${location}, work mode: ${workMode || 'Any'}. Return a JSON array of 8-10 results. Each object must include: companyName(string), role(string), stipend(string - salary/stipend with currency), duration(string), location(string), workMode("Remote"|"Hybrid"|"On-site"), techStack(array of 3-5 strings), matchScore(number 65-98 based on skill alignment), freshnessScore(number 1-10, 10=posted today), ppoChance(string like "High"|"Medium"|"Low"|"N/A" for internships), postDate(string like "2 days ago"), url(string - direct career page URL, prefer official company career pages over aggregators), isVerified(boolean based on recency and recruiter activity). Return ONLY valid JSON array, no markdown.`;
+            const result = await model.generateContent(prompt);
             return res.json(JSON.parse(result.response.text()));
-        } catch (error) {}
+        } catch (error) { console.error('Live Jobs Error:', error); }
     }
     
     await new Promise(r => setTimeout(r, 1500));
-    const randomFallback = [
-        { companyName: 'Google', role: `SDE Intern - ${role}`, stipend: '$8,000/mo', duration: duration, url: 'https://careers.google.com' },
-        { companyName: 'Amazon', role: `Cloud Integration ${jobType}`, stipend: '$120,000/yr', duration: 'Full Time', url: 'https://amazon.jobs' },
-        { companyName: 'Atlassian', role: `Frontend Ecosystem (${skills})`, stipend: '$6,000/mo', duration: duration, url: 'https://atlassian.com/careers' },
-        { companyName: 'TCS', role: `Digital Profile - ${location}`, stipend: '7 LPA', duration: 'Permanent', url: 'https://tcs.com/careers' }
-    ];
-    res.json(randomFallback);
+    res.json([
+        { companyName: 'Google', role: `${role} - L3`, stipend: '₹45-80 LPA', duration: 'Full-time', location: location, workMode: 'Hybrid', techStack: ['Go', 'Kubernetes', 'Python', 'BigQuery'], matchScore: 87, freshnessScore: 9, ppoChance: 'N/A', postDate: '1 day ago', url: 'https://careers.google.com', isVerified: true },
+        { companyName: 'Amazon', role: `SDE-2 ${role}`, stipend: '₹40-70 LPA', duration: 'Full-time', location: location, workMode: 'On-site', techStack: ['Java', 'AWS', 'DynamoDB', 'React'], matchScore: 79, freshnessScore: 7, ppoChance: 'N/A', postDate: '3 days ago', url: 'https://amazon.jobs', isVerified: true },
+        { companyName: 'Atlassian', role: `${jobType} - ${role}`, stipend: '₹80,000/mo', duration: duration, location: 'Remote', workMode: 'Remote', techStack: ['React', 'Node.js', 'GraphQL'], matchScore: 91, freshnessScore: 10, ppoChance: 'High', postDate: 'Today', url: 'https://www.atlassian.com/company/careers', isVerified: true },
+        { companyName: 'Flipkart', role: `${role} Engineer`, stipend: '₹35-55 LPA', duration: 'Full-time', location: 'Bangalore', workMode: 'Hybrid', techStack: ['Java', 'Kafka', 'Spark', 'MySQL'], matchScore: 74, freshnessScore: 5, ppoChance: 'N/A', postDate: '1 week ago', url: 'https://www.flipkartcareers.com', isVerified: false }
+    ]);
 });
+
+app.post('/api/sniper-context', async (req, res) => {
+    const { skills, company, role, techStack } = req.body;
+    if (!skills || !company) return res.status(400).json({ error: 'Missing data' });
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+            const prompt = `In 4-5 bullet points, explain exactly how this candidate's skills (${skills}) solve ${company}'s specific engineering problems for the role "${role}" requiring ${(techStack || []).join(', ')}. Be precise, use technical language, and reference real company challenges. Format as plain text bullets starting with '-'. No headers.`;
+            const result = await model.generateContent(prompt);
+            return res.json({ context: result.response.text() });
+        } catch (e) { console.error('Sniper Error:', e); }
+    }
+    await new Promise(r => setTimeout(r, 800));
+    res.json({ context: `- Your ${skills.split(',')[0]?.trim()} expertise directly addresses ${company}'s need for scalable microservices.\n- Proficiency in relevant frameworks reduces onboarding time by 40%, accelerating team velocity.\n- System design knowledge aligns with ${company}'s distributed infrastructure challenges at scale.\n- Strong algorithmic foundation meets ${company}'s bar for optimal data processing pipelines.` });
+});
+
 
 // 6. API Endpoint: ATS Resume Analyzer
 app.post('/api/analyze-resume', async (req, res) => {
