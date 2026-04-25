@@ -15,6 +15,7 @@ import ResumeBuilder from './pages/ResumeBuilder';
 import DSASniper from './pages/DSASniper';
 import SkillArchitect from './pages/SkillArchitect';
 import BentoDashboard from './components/Dashboard';
+import BackgroundManager from './components/BackgroundManager';
 import './App.css';
 
 
@@ -150,11 +151,7 @@ function App() {
   return (
     <AuthProvider>
     <BrowserRouter>
-      <div className="grain-overlay"></div>
-      <div className="premium-blobs">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
-      </div>
+      <BackgroundManager />
       {!isAppLoaded && (
         <div className="aegis-overlay">
           <div className="aegis-core">
