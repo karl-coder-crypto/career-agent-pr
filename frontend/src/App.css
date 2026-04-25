@@ -1703,3 +1703,129 @@ a.nav-link:hover svg {
   background: rgba(0, 0, 0, 0.03);
   border-left: 3px solid #059669;
 }
+
+/* --- MASTER COMMAND CENTER --- */
+.master-command-center {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  z-index: 10;
+  position: relative;
+}
+
+.os-bento-grid-master {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 200px;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .os-bento-grid-master {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .os-bento-grid-master {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+}
+
+.os-bento-card-master {
+  background: rgba(15, 15, 15, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  padding: 30px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.4s ease;
+}
+
+:root[data-theme='light'] .os-bento-card-master {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.os-bento-card-master:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15), inset 0 0 20px rgba(99, 102, 241, 0.1);
+}
+
+:root[data-theme='light'] .os-bento-card-master:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.1), inset 0 0 20px rgba(99, 102, 241, 0.05);
+}
+
+.os-bento-card-master.size-wide {
+  grid-column: span 2;
+}
+
+.os-bento-card-master.size-tall {
+  grid-row: span 2;
+}
+
+.card-content-master {
+  position: relative;
+  z-index: 2;
+}
+
+.card-content-master h3 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.card-content-master p {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* SVG Animations */
+.jarvis-wave {
+  animation: waveShift 4s infinite linear;
+  transform-origin: center;
+}
+.jarvis-wave-2 {
+  animation: waveShift 6s infinite linear reverse;
+  transform-origin: center;
+}
+
+@keyframes waveShift {
+  0% { transform: translateX(0) scaleY(1); }
+  50% { transform: translateX(-10px) scaleY(1.2); }
+  100% { transform: translateX(0) scaleY(1); }
+}
+
+.ats-dna {
+  animation: dnaSpin 5s linear infinite;
+}
+
+@keyframes dnaSpin {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 100; }
+}
+
+.dsa-crosshair {
+  animation: crosshairRotate 10s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes crosshairRotate {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}

@@ -1,178 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
-const logMessages = [
-  "[AUTH] Handshake Verified.",
-  "[SCAN] Checking 402 Job Nodes...",
-  "[SYS] Neural Load Optimal.",
-  "[NET] Synchronizing Profiles...",
-  "[AI] Model Parameters Updated.",
-  "[SEC] Protocols Enforced.",
-  "[DB] Indexing Resumes...",
-  "[CORE] Subroutines Active."
+const modules = [
+  { 
+    title: 'JARVIS Consultant', path: '/consultant', desc: 'Your personal AI-powered career guide', size: 'wide',
+    svg: (
+      <svg viewBox="0 0 100 50" width="100%" height="80" style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0.15, pointerEvents: 'none' }}>
+        <path className="jarvis-wave" d="M0,25 C20,10 30,40 50,25 C70,10 80,40 100,25 L100,50 L0,50 Z" fill="currentColor" />
+        <path className="jarvis-wave-2" d="M0,30 C20,50 40,10 60,30 C80,50 90,20 100,30 L100,50 L0,50 Z" fill="currentColor" opacity="0.5"/>
+      </svg>
+    )
+  },
+  { 
+    title: 'ATS Scanner', path: '/resume-checker', desc: 'Deep resume analysis & ATS compatibility score', size: 'tall',
+    svg: (
+      <svg viewBox="0 0 50 100" width="80" height="100%" style={{ position: 'absolute', right: '5%', top: 0, opacity: 0.15, pointerEvents: 'none' }}>
+        <path className="ats-dna" d="M10,10 Q40,30 10,50 T10,90 M40,10 Q10,30 40,50 T40,90" stroke="currentColor" fill="none" strokeWidth="3" strokeDasharray="5,5" />
+        <line x1="15" y1="20" x2="35" y2="20" stroke="currentColor" strokeWidth="2" opacity="0.5"/>
+        <line x1="25" y1="30" x2="25" y2="30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <line x1="15" y1="40" x2="35" y2="40" stroke="currentColor" strokeWidth="2" opacity="0.5"/>
+        <line x1="25" y1="70" x2="25" y2="70" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <line x1="15" y1="80" x2="35" y2="80" stroke="currentColor" strokeWidth="2" opacity="0.5"/>
+      </svg>
+    )
+  },
+  { title: 'Live Opportunities', path: '/opportunities', desc: 'Real-time job market scanner', size: 'normal' },
+  { 
+    title: 'DSA Sniper', path: '/dsa-sniper', desc: 'Targeted algorithm preparation', size: 'normal',
+    svg: (
+      <svg viewBox="0 0 100 100" width="80" height="80" style={{ position: 'absolute', right: '10%', bottom: '10%', opacity: 0.15, pointerEvents: 'none' }} className="dsa-crosshair">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" />
+        <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="50" cy="50" r="4" fill="currentColor" />
+        <line x1="50" y1="0" x2="50" y2="100" stroke="currentColor" strokeWidth="1" />
+        <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="1" />
+      </svg>
+    )
+  },
+  { title: 'Resume Editor', path: '/resume-builder', desc: 'Professional document architect', size: 'wide' },
+  { title: 'Networking Hub', path: '/networking-hub', desc: 'Automated outreach & smart connections', size: 'tall' },
+  { title: 'Skill Architect', path: '/skill-architect', desc: 'Dynamic learning paths & skill trees', size: 'wide' }
 ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [logs, setLogs] = useState([]);
-  const [uptime, setUptime] = useState(0);
-  const [load, setLoad] = useState(12);
-
-  const modules = [
-    { title: 'JARVIS Consultant', path: '/consultant', desc: 'AI-powered guidance', size: 'tall' },
-    { title: 'Networking Hub', path: '/networking-hub', desc: 'Automated outreach', size: 'wide' },
-    { title: 'DSA Sniper', path: '/dsa-sniper', desc: 'Targeted prep', size: 'normal' },
-    { title: 'Mock Interview', path: '/mock-interview', desc: 'Simulated interviews', size: 'normal' },
-    { title: 'Live Opportunities', path: '/opportunities', desc: 'Real-time scanner', size: 'wide' },
-    { title: 'Skill Architect', path: '/skill-architect', desc: 'Learning paths', size: 'normal' }
-  ];
-
-  useEffect(() => {
-    const logInterval = setInterval(() => {
-      setLogs(prev => {
-        const newLog = {
-          id: Date.now(),
-          text: logMessages[Math.floor(Math.random() * logMessages.length)]
-        };
-        const nextLogs = [newLog, ...prev];
-        if (nextLogs.length > 8) nextLogs.pop();
-        return nextLogs;
-      });
-    }, 4000);
-
-    const uptimeInterval = setInterval(() => {
-      setUptime(prev => prev + 1);
-    }, 1000);
-
-    const loadInterval = setInterval(() => {
-      setLoad(prev => {
-        const change = Math.floor(Math.random() * 5) - 2;
-        return Math.max(5, Math.min(95, prev + change));
-      });
-    }, 2000);
-
-    return () => {
-      clearInterval(logInterval);
-      clearInterval(uptimeInterval);
-      clearInterval(loadInterval);
-    };
-  }, []);
-
-  const formatUptime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
 
   return (
-    <>
-
-      
-      <div className="os-hub-container">
-        <div className="os-panel">
-          <h2 className="os-text-main" style={{ fontSize: '1.2rem', marginBottom: '24px', letterSpacing: '2px', textTransform: 'uppercase' }}>System Vitals</h2>
-          
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span className="os-text-muted" style={{ fontSize: '0.85rem', textTransform: 'uppercase' }}>Neural Load</span>
-              <span className="os-accent" style={{ fontWeight: 'bold' }}>{load}%</span>
+    <div className="master-command-center">
+      <div className="os-bento-grid-master">
+        {modules.map((m, i) => (
+          <motion.div
+            key={i}
+            whileHover={{ y: -10 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            className={`os-bento-card-master size-${m.size}`}
+            onClick={() => navigate(m.path)}
+          >
+            {m.svg && m.svg}
+            <div className="card-content-master">
+              <h3 className="os-text-main">{m.title}</h3>
+              <p className="os-text-muted">{m.desc}</p>
             </div>
-            <div className="os-progress-track">
-              <div className="os-progress-fill" style={{ width: `${load}%` }} />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <span className="os-text-muted" style={{ fontSize: '0.85rem', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>System Uptime</span>
-            <span className="os-text-main" style={{ fontSize: '1.5rem', fontFamily: 'monospace', letterSpacing: '2px' }}>{formatUptime(uptime)}</span>
-          </div>
-
-          <div style={{ marginBottom: '32px' }}>
-            <span className="os-text-muted" style={{ fontSize: '0.85rem', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Security Protocol</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="os-accent">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              <span className="os-text-main" style={{ fontWeight: '600' }}>Active & Enforced</span>
-            </div>
-          </div>
-
-          <div className="os-radar-container">
-            <div className="os-radar-sweep" />
-            <svg width="100%" height="100%" viewBox="0 0 150 150" style={{ position: 'absolute', inset: 0, opacity: 0.2 }}>
-              <circle cx="75" cy="75" r="30" fill="none" stroke="currentColor" strokeWidth="1" className="os-accent" />
-              <circle cx="75" cy="75" r="60" fill="none" stroke="currentColor" strokeWidth="1" className="os-accent" />
-              <line x1="75" y1="0" x2="75" y2="150" stroke="currentColor" strokeWidth="1" className="os-accent" />
-              <line x1="0" y1="75" x2="150" y2="75" stroke="currentColor" strokeWidth="1" className="os-accent" />
-            </svg>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="os-orb-container">
-            <div className="os-orb-ring-2" />
-            <div className="os-orb-ring-1" />
-            <div className="os-orb-core">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="os-accent" style={{ background: 'transparent' }}>
-                <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-                <rect x="9" y="9" width="6" height="6" />
-                <line x1="9" y1="1" x2="9" y2="4" />
-                <line x1="15" y1="1" x2="15" y2="4" />
-                <line x1="9" y1="20" x2="9" y2="23" />
-                <line x1="15" y1="20" x2="15" y2="23" />
-                <line x1="20" y1="9" x2="23" y2="9" />
-                <line x1="20" y1="14" x2="23" y2="14" />
-                <line x1="1" y1="9" x2="4" y2="9" />
-                <line x1="1" y1="14" x2="4" y2="14" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="os-bento-grid">
-            {modules.map((m, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 100, damping: 10 }}
-                className="os-bento-card"
-                onClick={() => navigate(m.path)}
-                style={{
-                  gridColumn: m.size === 'wide' ? 'span 2' : 'span 1',
-                  gridRow: m.size === 'tall' ? 'span 2' : 'span 1'
-                }}
-              >
-                <h3 className="os-text-main" style={{ fontSize: '1.25rem', marginBottom: '8px' }}>{m.title}</h3>
-                <p className="os-text-muted" style={{ fontSize: '0.9rem', fontWeight: '500' }}>{m.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        <div className="os-panel">
-          <h2 className="os-text-main" style={{ fontSize: '1.2rem', marginBottom: '24px', letterSpacing: '2px', textTransform: 'uppercase' }}>Neural Telemetry</h2>
-          <div className="os-log-stream">
-            <AnimatePresence>
-              {logs.map((log) => (
-                <motion.div
-                  key={log.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ type: 'spring', stiffness: 100, damping: 10 }}
-                  className="os-log-message"
-                >
-                  <span className="os-text-muted" style={{ marginRight: '8px' }}>[{new Date(log.id).toLocaleTimeString([], { hour12: false })}]</span>
-                  <span className="os-text-main">{log.text}</span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
+          </motion.div>
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 

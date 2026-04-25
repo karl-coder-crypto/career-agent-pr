@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const getAnimationType = (pathname) => {
-  if (pathname === '/') return 'ambient';
+  if (pathname === '/') return 'core-pulse';
   if (pathname.includes('/consultant')) return 'synapse';
   if (pathname.includes('/opportunities')) return 'growth';
   if (pathname.includes('/resume-checker')) return 'helix';
@@ -39,6 +39,8 @@ const CanvasAnimation = ({ type }) => {
           { x: w * 0.8, y: h * 0.3, r: w * 0.25, color: isLight ? 'rgba(51, 102, 255, 0.4)' : 'rgba(51, 102, 255, 0.3)' },
           { x: w * 0.5, y: h * 0.8, r: w * 0.35, color: isLight ? 'rgba(168, 85, 247, 0.3)' : 'rgba(168, 85, 247, 0.2)' }
         ];
+      } else if (type === 'core-pulse') {
+        items = [{ r: 0, timeOffset: 0 }];
       } else if (type === 'synapse') {
         for (let i = 0; i < 40; i++) {
           items.push({
@@ -129,6 +131,31 @@ const CanvasAnimation = ({ type }) => {
           drawBlob(blob.x + offsetX, blob.y + offsetY, blob.r, blob.color);
         });
       } 
+      else if (type === 'core-pulse') {
+        const pulse = items[0];
+        pulse.timeOffset += 0.05;
+        const cx = w / 2;
+        const cy = h / 2;
+        
+        const baseR = Math.min(w, h) * 0.15;
+        const currentR = baseR + Math.sin(pulse.timeOffset * 0.5) * 20;
+        const orbColor = isLight ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.2)';
+        drawBlob(cx, cy, currentR * 3, orbColor);
+
+        ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.15)' : 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+
+        for (let i = 1; i <= 3; i++) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate((pulse.timeOffset * 0.1 * i) * (i % 2 === 0 ? -1 : 1));
+          ctx.beginPath();
+          ctx.setLineDash([10, 15]);
+          ctx.arc(0, 0, baseR * 1.5 * i, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
       else if (type === 'synapse') {
         ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.3)' : 'rgba(255, 255, 255, 0.3)';
         ctx.strokeStyle = isLight ? 'rgba(15, 23, 42, 0.05)' : 'rgba(255, 255, 255, 0.05)';
@@ -265,7 +292,7 @@ const CanvasAnimation = ({ type }) => {
 
   // Apply CSS blur only to specific ambient types to save performance on drawing gradients,
   // though we draw radial gradients anyway for blobs. 60px blur creates the "ambient nebula" effect perfectly.
-  const shouldBlur = type === 'ambient' || type === 'orbital';
+  const shouldBlur = type === 'ambient' || type === 'orbital' || type === 'core-pulse';
 
   return (
     <canvas 
