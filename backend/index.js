@@ -490,36 +490,60 @@ app.post('/api/explain-dsa', async (req, res) => {
     res.json({ reply: `Intuition:\nIdentify patterns like two pointers or hashing.\n\nApproach:\nAvoid brute force. Instead, maintain a running state to process elements in a single pass.\n\nComplexity:\nTime: O(N)\nSpace: O(N)` });
 });
 
-// The Skill Architect Pipeline
 app.post('/api/architect-fetch', async (req, res) => {
     const { query, level, format, language, cost } = req.body;
     if (process.env.GEMINI_API_KEY) {
         try {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({
-                model: "gemini-2.5-flash",
-                generationConfig: { responseMimeType: "application/json" }
-            });
-            const systemPrompt = `You are an expert learning aggregator. Crawl the web for high-quality resources matching: Skill "${query}", Level "${level}", Format "${format}", Language "${language}", Cost "${cost}". 
-Search for the actual YouTube playlist, Udemy course, or Documentation link for each result and return it in the JSON as direct_url.
-Return a strict JSON object with TWO arrays: 
-1. "resources" (min 8 items): { title (string), creator (string), rating (string like 4.8), difficulty (string), duration (string), cost (string), direct_url (string starting with https), why_this_resource (short string USP) }
-2. "practiceLabs" (3 items): { title (string), description (string), direct_url (string) }. 
-Only generate realistic mock data if web access fails heavily. Match exactly.`;
-            const result = await model.generateContent(systemPrompt);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const prompt = `You are an expert 2026 learning aggregator with real-time web access. For skill "${query}" at level "${level}" in language "${language}": Return strict JSON with keys: 1) "resources" array (8 items): {title, creator, rating(x.x string), difficulty, duration, cost, direct_url(https), why_this_resource}. 2) "practiceLabs" array (3 items): {title, description, direct_url}. 3) "marketData": {demand_score(1-10 number), avg_salary_india(string like "18-32 LPA"), avg_salary_global(string like "$120k-180k"), top_companies(array of 4 strings), trend_2026(string, 1 sentence)}. Use ${cost} cost preference. Only return valid JSON, no markdown.`;
+            const result = await model.generateContent(prompt);
             return res.json(JSON.parse(result.response.text()));
         } catch (error) {}
     }
     await new Promise(r => setTimeout(r, 2000));
     res.json({
-        resources: [
-            { title: `${query} Masterclass`, creator: `CodeWithXYZ`, rating: `4.9`, difficulty: level, duration: `10 Hrs`, cost: cost, direct_url: ``, why_this_resource: `Best overall guide covering native paradigms mapping your exact domain.` },
-            { title: `Advanced Patterns in ${query}`, creator: `FrontendMasters`, rating: `4.7`, difficulty: `Advanced`, duration: `4 Hrs`, cost: cost, direct_url: ``, why_this_resource: `Perfect for optimizing rendering and logic sequences natively.` }
-        ],
-        practiceLabs: [
-            { title: `Build a Clone mapping ${query}`, description: `Codedamn interactive lab validating architectures.`, direct_url: `` }
-        ]
+        resources: [{ title: `${query} Complete Bootcamp`, creator: 'Traversy Media', rating: '4.9', difficulty: level, duration: '12 Hrs', cost: cost, direct_url: `https://youtube.com/results?search_query=${encodeURIComponent(query)}`, why_this_resource: 'Best structured guide for rapid skill acquisition.' }],
+        practiceLabs: [{ title: `Build with ${query}`, description: 'Hands-on project reinforcing core concepts.', direct_url: `https://github.com/search?q=${encodeURIComponent(query)}` }],
+        marketData: { demand_score: 8, avg_salary_india: '15-28 LPA', avg_salary_global: '$90k-140k', top_companies: ['Google', 'Amazon', 'Microsoft', 'Flipkart'], trend_2026: `${query} is seeing 40%+ YoY demand growth driven by AI-integrated workflows.` }
     });
+});
+
+app.post('/api/skill-roadmap', async (req, res) => {
+    const { skill, level } = req.body;
+    if (!skill) return res.status(400).json({ error: 'Skill required' });
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const prompt = `Generate a learning roadmap for "${skill}" at ${level || 'Beginner'} level. Return strict JSON: { "nodes": [ { "id": string, "label": string, "tier": "prerequisite"|"core"|"advanced", "description": string(1 sentence), "resources": [{"title": string, "url": string}], "quiz": { "question": string, "options": [string,string,string,string], "answer": number(0-3) } } ] }. Generate 12-16 nodes total: 3 prerequisites, 6-8 core, 3-5 advanced. Make node IDs unique slugs.`;
+            const result = await model.generateContent(prompt);
+            return res.json(JSON.parse(result.response.text()));
+        } catch (e) { console.error('Roadmap Error:', e); }
+    }
+    await new Promise(r => setTimeout(r, 1500));
+    res.json({ nodes: [
+        { id: 'prereq-1', label: 'Programming Basics', tier: 'prerequisite', description: 'Fundamental programming concepts.', resources: [{ title: 'CS50x', url: 'https://cs50.harvard.edu' }], quiz: { question: 'What is a variable?', options: ['A function', 'A stored value', 'A loop', 'A class'], answer: 1 } },
+        { id: 'core-1', label: `${skill} Fundamentals`, tier: 'core', description: `Core concepts of ${skill}.`, resources: [{ title: `${skill} Docs`, url: `https://google.com/search?q=${encodeURIComponent(skill)}+documentation` }], quiz: { question: `What is ${skill} primarily used for?`, options: ['Data storage', 'UI design', 'Core development', 'Testing'], answer: 2 } },
+        { id: 'adv-1', label: `Advanced ${skill}`, tier: 'advanced', description: 'Production-level patterns and optimization.', resources: [{ title: 'Advanced Patterns', url: `https://github.com/search?q=advanced+${encodeURIComponent(skill)}` }], quiz: { question: 'Which pattern optimizes large-scale systems?', options: ['Singleton', 'Observer', 'Microservices', 'MVC'], answer: 2 } }
+    ] });
+});
+
+app.post('/api/milestone-project', async (req, res) => {
+    const { skill, progress, githubUrl } = req.body;
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+            const prompt = githubUrl
+                ? `Briefly review this GitHub project for ${skill} completeness: ${githubUrl}. In 3 sentences: mention what looks good, what is missing, and give a completion score out of 10.`
+                : `Generate a milestone project for someone who is ${progress}% through learning ${skill}. Project must be: specific, buildable in a weekend, include exact file structure, 3 user stories, and a success metric. Format as plain text with clear sections.`;
+            const result = await model.generateContent(prompt);
+            return res.json({ content: result.response.text() });
+        } catch (e) { console.error('Milestone Error:', e); }
+    }
+    await new Promise(r => setTimeout(r, 1000));
+    res.json({ content: `Milestone Project (${progress}%): Build a CLI-based ${skill} application.\n\nUser Stories:\n1. User can input data\n2. System processes and stores results\n3. User can query history\n\nSuccess Metric: Handle 100+ records with <200ms response time.` });
 });
 
 app.post('/api/auth/send-otp', async (req, res) => {
