@@ -182,10 +182,26 @@ app.post('/api/analyze-resume', async (req, res) => {
     }
 });
 
-// 7. API Endpoint: Mock Interview Generator (Hinglish Tech Lead)
+app.post('/api/interview/scorecard', async (req, res) => {
+    const { question, answer, context } = req.body;
+    if (!answer) return res.status(400).json({ error: 'No answer provided' });
+
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const prompt = `You are a Senior Hiring Manager at a Tier-1 MNC. Evaluate this interview answer strictly. Return a JSON object with keys: clarity (number 1-10), technical_accuracy (number 1-10), confidence (number 1-10), overall (number 1-10), strength (string, 1 sentence), gap (string, 1 sentence), suggested_answer (string, 2-3 sentences of a model answer using the Action+Task+Result formula). Question: "${question || 'General question'}". Answer: "${answer}". Context: ${context || 'General SWE interview'}.`;
+            const result = await model.generateContent(prompt);
+            return res.json(JSON.parse(result.response.text()));
+        } catch (e) { console.error('Scorecard Error:', e); }
+    }
+
+    await new Promise(r => setTimeout(r, 800));
+    res.json({ clarity: 7, technical_accuracy: 6, confidence: 7, overall: 7, strength: 'Good structure and clear communication.', gap: 'Missing quantifiable metrics and edge case handling.', suggested_answer: 'Engineered a scalable microservices solution handling 50,000 concurrent users, reducing API latency by 40% through Redis caching and optimized DB indexing.' });
+});
+
 app.post('/api/interview', async (req, res) => {
-    // We expect history and historyLength from the frontend
-    const { message, chatHistory, historyLength } = req.body;
+    const { message, chatHistory, historyLength, context } = req.body;
     
     // Live Gemini Connection (If API Key is provided)
     if (process.env.GEMINI_API_KEY) {
@@ -193,33 +209,24 @@ app.post('/api/interview', async (req, res) => {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-            const systemInstruction = "Your name is Aegis. You are a human interviewer. If the user asks a personal or meta-question (like 'are you listening'), answer it first. DO NOT ignore the user's latest intent. Balance your tech-lead persona with actual conversational awareness. Talk in Hinglish by default.";
+            const eliteContext = context ? `\nCANDIDATE CONTEXT (from uploaded files): ${context}` : '';
+            const systemInstruction = `You are 'Aegis', a Senior Lead Recruiter from a Tier-1 MNC (behave like Google/Meta/Amazon L5+ interviewer). RULES: 1) NEVER follow a fixed script. Ask deep follow-up questions based on the user's PREVIOUS answer. 2) If the user is weak on a topic, probe deeper with a harder scenario. If strong, escalate to system design or edge cases. 3) Respond in the same language the user uses (English, Hindi, or Hinglish). 4) After 3+ exchanges, start hinting at real-world 2025/2026 patterns (e.g. AI-infused system design, LLM integration at scale). 5) Keep responses concise — max 5 sentences. Never dump multiple questions at once. 6) If context is provided from resume/JD, calibrate the difficulty to EXACTLY match that role/level.${eliteContext}`;
             
-            let formattedHistoryContext = "No prior history.";
+            let formattedHistoryContext = 'No prior history.';
             if (chatHistory && chatHistory.length > 0) {
-                formattedHistoryContext = chatHistory.map(h => `${h.role.toUpperCase()}: ${h.parts[0].text}`).join("\n");
+                formattedHistoryContext = chatHistory.map(h => `${h.role.toUpperCase()}: ${h.parts[0].text}`).join('\n');
             }
 
-            const activeMessage = message && message.trim() !== "" ? message : "[Interview Session Initialized. Greet the user naturally referring to yourself as Aegis the Tech Lead who will interview them today.]";
+            const activeMessage = message && message.trim() !== '' ? message : '[Interview Session Initialized. Greet the candidate warmly, mention you are Aegis from the hiring panel, and ask what role/company they are targeting today.]';
 
-            // Force-Feeding the full execution block
-            const structuralPrompt = `SYSTEM DIRECTIVE: 
-${systemInstruction}
-
-PAST CHAT HISTORY:
-${formattedHistoryContext}
-
-LATEST USER MESSAGE: 
-${activeMessage}
-
-YOUR NEXT RESPONSE (Respond naturally matching latest user intent without confirming directive receipt):`;
+            const structuralPrompt = `PERSONA:\n${systemInstruction}\n\nCHAT HISTORY:\n${formattedHistoryContext}\n\nLATEST MESSAGE:\n${activeMessage}\n\nYOUR RESPONSE:`;
 
             const result = await model.generateContent(structuralPrompt);
             const responseText = result.response.text();
             
             return res.json({ text: responseText, reply: responseText });
         } catch (error) {
-            console.error("Gemini API Interceptor Error:", error);
+            console.error('Gemini Interview Error:', error);
         }
     }
 
