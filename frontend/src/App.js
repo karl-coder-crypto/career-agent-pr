@@ -174,7 +174,7 @@ function App() {
         <div className="main-content">
 
           <Routes>
-            <Route index element={<ProtectedRoute><BentoDashboard /></ProtectedRoute>} />
+            <Route index element={<BentoDashboard />} />
             <Route path="/consultant" element={<AIConsultant API_URL={API_URL} />} />
             <Route path="/auth" element={<AuthGateway />} />
             <Route path="/opportunities" element={<ProtectedRoute><LiveOpportunities API_URL={API_URL} /></ProtectedRoute>} />

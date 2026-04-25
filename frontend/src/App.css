@@ -1829,3 +1829,107 @@ a.nav-link:hover svg {
   50% { transform: rotate(180deg) scale(1.1); }
   100% { transform: rotate(360deg) scale(1); }
 }
+
+.os-bento-card-master.size-square {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.os-bento-card-master.size-standard {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+/* Auth Panel */
+.auth-panel-floating {
+  position: absolute;
+  top: 0;
+  right: -300px;
+  width: 280px;
+  padding: 20px;
+  border-radius: 16px;
+  z-index: 20;
+}
+
+@media (max-width: 1500px) {
+  .auth-panel-floating {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 20px auto;
+  }
+}
+
+.auth-tab {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.auth-tab.active {
+  border-color: var(--accent-secondary);
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent-secondary);
+}
+
+.glass-input-small {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  width: 100%;
+}
+.glass-input-small:focus {
+  outline: none;
+  border-color: var(--accent-secondary);
+}
+
+.action-btn-small {
+  background: var(--accent-primary);
+  color: #fff;
+  border: 1px solid var(--accent-primary);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.3s;
+}
+
+/* New Animations */
+.opp-particles .particle {
+  animation: floatUp 3s infinite linear;
+}
+.opp-particles .p1 { animation-duration: 2.5s; animation-delay: 0s; }
+.opp-particles .p2 { animation-duration: 3.5s; animation-delay: 0.5s; }
+.opp-particles .p3 { animation-duration: 4s; animation-delay: 1s; }
+.opp-particles .p4 { animation-duration: 3s; animation-delay: 1.5s; }
+.opp-particles .p5 { animation-duration: 2.8s; animation-delay: 0.8s; }
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+
+.net-orbit .orbit-moon {
+  transform-origin: 50px 50px;
+}
+.net-orbit .m1 { animation: orbitSpin 4s linear infinite; }
+.net-orbit .m2 { animation: orbitSpin 6s linear infinite reverse; }
+.net-orbit .m3 { animation: orbitSpin 8s linear infinite; }
+
+@keyframes orbitSpin {
+  100% { transform: rotate(360deg); }
+}
