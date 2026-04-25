@@ -68,11 +68,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="os-helix-rails">
-        {[...Array(24)].map((_, i) => (
-          <div key={i} className="os-helix-line" />
-        ))}
-      </div>
+
       
       <div className="os-hub-container">
         <div className="os-panel">

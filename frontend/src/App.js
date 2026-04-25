@@ -3,9 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 import AIConsultant from './pages/AIConsultant';
-import SynapticFlow from './components/SynapticFlow';
-import AscendingGrowth from './components/backgrounds/AscendingGrowth';
-import HelixDNA from './components/backgrounds/HelixDNA';
+
 import LiveOpportunities from './pages/LiveOpportunities';
 import ResumeChecker from './pages/ResumeChecker';
 import MockInterview from './pages/MockInterview';
@@ -19,83 +17,6 @@ import SkillArchitect from './pages/SkillArchitect';
 import BentoDashboard from './components/Dashboard';
 import './App.css';
 
-const FluidBackground = () => {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    let time = 0;
-    
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', resize);
-    resize();
-
-    const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
-
-      ctx.lineWidth = 1;
-      
-      const numLines = Math.floor(canvas.width / 100);
-      for (let i = 0; i <= canvas.width; i += 100) {
-        ctx.strokeStyle = isLightMode ? '#F1F5F9' : '#1A1A1A';
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
-      }
-
-      if (!isLightMode) {
-        for (let i = 0; i < 5; i++) {
-          const x = (canvas.width / 5) * i + 50 + Math.sin(time + i) * 30;
-          const gradient = ctx.createLinearGradient(x, 0, x, canvas.height);
-          gradient.addColorStop(0, 'rgba(51, 102, 255, 0)');
-          gradient.addColorStop(0.5, 'rgba(168, 85, 247, 0.4)');
-          gradient.addColorStop(1, 'rgba(51, 102, 255, 0)');
-          
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, canvas.height);
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      } else {
-        for (let i = 0; i < 3; i++) {
-          const x = (canvas.width / 3) * i + 100 + Math.sin(time + i) * 20;
-          const gradient = ctx.createLinearGradient(x, 0, x, canvas.height);
-          gradient.addColorStop(0, 'rgba(51, 102, 255, 0)');
-          gradient.addColorStop(0.5, 'rgba(51, 102, 255, 0.15)');
-          gradient.addColorStop(1, 'rgba(51, 102, 255, 0)');
-          
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, canvas.height);
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      }
-
-      time += 0.015;
-      animationId = requestAnimationFrame(render);
-    };
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, pointerEvents: 'none' }} />;
-};
 
 const TypewriterText = ({ text, formatFn, onDone }) => {
   const [index, setIndex] = useState(0);
@@ -230,7 +151,10 @@ function App() {
     <AuthProvider>
     <BrowserRouter>
       <div className="grain-overlay"></div>
-      <FluidBackground />
+      <div className="premium-blobs">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+      </div>
       {!isAppLoaded && (
         <div className="aegis-overlay">
           <div className="aegis-core">
@@ -254,10 +178,10 @@ function App() {
 
           <Routes>
             <Route index element={<ProtectedRoute><BentoDashboard /></ProtectedRoute>} />
-            <Route path="/consultant" element={<SynapticFlow><AIConsultant API_URL={API_URL} /></SynapticFlow>} />
+            <Route path="/consultant" element={<AIConsultant API_URL={API_URL} />} />
             <Route path="/auth" element={<AuthGateway />} />
-            <Route path="/opportunities" element={<ProtectedRoute><AscendingGrowth><LiveOpportunities API_URL={API_URL} /></AscendingGrowth></ProtectedRoute>} />
-            <Route path="/resume-checker" element={<HelixDNA><ResumeChecker API_URL={API_URL} /></HelixDNA>} />
+            <Route path="/opportunities" element={<ProtectedRoute><LiveOpportunities API_URL={API_URL} /></ProtectedRoute>} />
+            <Route path="/resume-checker" element={<ResumeChecker API_URL={API_URL} />} />
             <Route path="/resume-builder" element={<ResumeBuilder API_URL={API_URL} />} />
             <Route path="/skill-architect" element={<ProtectedRoute><SkillArchitect API_URL={API_URL} /></ProtectedRoute>} />
             <Route path="/dsa-sniper" element={<ProtectedRoute><DSASniper API_URL={API_URL} /></ProtectedRoute>} />
