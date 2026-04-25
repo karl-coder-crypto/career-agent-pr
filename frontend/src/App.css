@@ -1933,3 +1933,103 @@ a.nav-link:hover svg {
 @keyframes orbitSpin {
   100% { transform: rotate(360deg); }
 }
+
+/* Resume Builder Overhaul */
+.builder-split {
+  display: flex;
+  gap: 30px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+@media (max-width: 1024px) {
+  .builder-split {
+    flex-direction: column;
+  }
+}
+
+.editor-side {
+  flex: 1;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.preview-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.mnc-pdf-preview {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  font-family: 'Inter', 'Roboto', 'Open Sans', sans-serif !important;
+  font-size: 11pt !important;
+  line-height: 1.5 !important;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-sizing: border-box;
+}
+
+.mnc-name {
+  font-size: 24pt !important;
+  font-weight: 700 !important;
+  text-align: center;
+  text-transform: uppercase;
+  margin: 0 0 5px 0 !important;
+  letter-spacing: 1px;
+}
+
+.mnc-contact {
+  text-align: center;
+  font-size: 10pt !important;
+  margin-bottom: 15px !important;
+  border-bottom: 1px solid #000;
+  padding-bottom: 10px;
+}
+
+.mnc-section {
+  margin-bottom: 15px;
+}
+
+.mnc-header {
+  font-size: 12pt !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  border-bottom: 1px solid #000;
+  margin: 0 0 10px 0 !important;
+  padding-bottom: 2px;
+}
+
+.mnc-item {
+  margin-bottom: 10px;
+}
+
+.mnc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.mnc-bold {
+  font-weight: 700 !important;
+}
+
+.mnc-bullets {
+  margin: 5px 0 0 15px !important;
+  padding: 0 !important;
+  list-style-type: disc !important;
+}
+
+.mnc-bullets li {
+  margin-bottom: 3px !important;
+  text-align: justify;
+}
