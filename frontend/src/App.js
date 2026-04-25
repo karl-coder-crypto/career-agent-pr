@@ -16,6 +16,7 @@ import AuthGateway from './pages/AuthGateway';
 import ResumeBuilder from './pages/ResumeBuilder';
 import DSASniper from './pages/DSASniper';
 import SkillArchitect from './pages/SkillArchitect';
+import BentoDashboard from './components/Dashboard';
 import './App.css';
 
 const FluidBackground = () => {
@@ -94,35 +95,6 @@ const FluidBackground = () => {
   }, []);
 
   return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1, pointerEvents: 'none' }} />;
-};
-
-const BentoDashboard = () => {
-  const navigate = useNavigate();
-  const modules = [
-    { title: 'JARVIS Consultant', path: '/consultant', desc: 'AI-powered career guidance', class: 'wide' },
-    { title: 'Networking Hub', path: '/networking-hub', desc: 'Automated outreach radar', class: 'tall' },
-    { title: 'DSA Sniper', path: '/dsa-sniper', desc: 'Targeted algorithm prep', class: '' },
-    { title: 'Mock Interview', path: '/mock-interview', desc: 'Simulated interviews', class: '' },
-    { title: 'Live Opportunities', path: '/opportunities', desc: 'Real-time job scanner', class: 'wide' },
-    { title: 'Skill Architect', path: '/skill-architect', desc: 'Personalized learning paths', class: '' }
-  ];
-
-  return (
-    <div className="layout-col" style={{ maxWidth: '1000px', width: '100%' }}>
-      <div className="header-box" style={{ textAlign: 'left', marginBottom: '10px' }}>
-        <h1 style={{ fontSize: '2.5rem' }}>Aegis Core</h1>
-        <p style={{ color: '#71717A', letterSpacing: '1px' }}>EXECUTIVE DASHBOARD</p>
-      </div>
-      <div className="bento-grid">
-        {modules.map((m, i) => (
-          <div key={i} className={`glass bento-card ${m.class}`} onClick={() => navigate(m.path)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: m.class === 'tall' ? '320px' : '200px', gridColumn: m.class === 'wide' ? 'span 2' : 'span 1', gridRow: m.class === 'tall' ? 'span 2' : 'span 1' }}>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{m.title}</h3>
-            <p style={{ color: '#71717A', fontSize: '1rem', fontWeight: '500' }}>{m.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 };
 
 const TypewriterText = ({ text, formatFn, onDone }) => {
