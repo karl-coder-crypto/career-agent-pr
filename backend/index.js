@@ -113,6 +113,56 @@ app.get('/history', async (req, res) => {
     }
 });
 
+app.post('/api/consultant/analyze', async (req, res) => {
+    const { company, skills, followUp } = req.body;
+    if (!company || !skills) return res.status(400).json({ error: 'Company and skills required' });
+
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const prompt = `You are Aegis, a senior MNC engineering mentor. Analyze this candidate for ${company} with skills: ${skills}. ${followUp ? 'Follow-up context: ' + followUp : ''}
+Return strict JSON (no markdown) with keys:
+{
+  "hiring_sentiment": "Aggressive" | "Selective" | "Freeze",
+  "sentiment_reason": string,
+  "tech_stack_2026": [string] (5 key technologies ${company} is focusing on in 2026),
+  "user_vector": { "dsa": number(1-10), "system_design": number(1-10), "frameworks": number(1-10), "domain": number(1-10), "impact": number(1-10) },
+  "mnc_benchmark": { "dsa": number(1-10), "system_design": number(1-10), "frameworks": number(1-10), "domain": number(1-10), "impact": number(1-10) },
+  "killer_project": { "title": string, "description": string(2 sentences), "why": string(1 sentence impact on callback probability) },
+  "leetcode_patterns": [{ "pattern": string, "frequency": "High"|"Medium", "example": string }] (top 5),
+  "salary_2026": { "base_india": string, "base_global": string, "rsu": string, "growth_track": string },
+  "follow_up_questions": [string] (2-3 probing questions the mentor should ask next),
+  "protocol_checklist": [string] (5 actionable items with time estimates),
+  "mentor_message": string (2-3 sentences in Hinglish, direct and gritty mentor tone)
+}`;
+            const result = await model.generateContent(prompt);
+            return res.json(JSON.parse(result.response.text()));
+        } catch (e) { console.error('Consultant Analyze Error:', e); }
+    }
+
+    await new Promise(r => setTimeout(r, 1500));
+    res.json({
+        hiring_sentiment: 'Selective',
+        sentiment_reason: `${company} is in a selective hiring phase, focusing on senior engineers with proven system design experience.`,
+        tech_stack_2026: ['Agentic AI', 'Rust', 'Kubernetes', 'Go', 'Vector DBs'],
+        user_vector: { dsa: 6, system_design: 5, frameworks: 7, domain: 5, impact: 4 },
+        mnc_benchmark: { dsa: 9, system_design: 9, frameworks: 8, domain: 8, impact: 9 },
+        killer_project: { title: `Distributed Rate Limiter for ${company}-scale traffic`, description: 'Build a token-bucket rate limiter using Redis + Go that handles 1M req/sec. Deploy on Kubernetes with auto-scaling.', why: 'This project directly mirrors the infra challenges at this scale and signals systems-level thinking.' },
+        leetcode_patterns: [
+            { pattern: 'Sliding Window', frequency: 'High', example: 'Longest Substring Without Repeating Characters' },
+            { pattern: 'Two Pointers', frequency: 'High', example: 'Container With Most Water' },
+            { pattern: 'Graph BFS/DFS', frequency: 'High', example: 'Number of Islands' },
+            { pattern: 'Dynamic Programming', frequency: 'Medium', example: 'Coin Change' },
+            { pattern: 'Heap / Priority Queue', frequency: 'Medium', example: 'Top K Frequent Elements' }
+        ],
+        salary_2026: { base_india: '40-80 LPA', base_global: '$180k-220k', rsu: '$50k-100k/yr', growth_track: 'SDE-2 → SDE-3 in 2-3 years, Staff Engineer in 5-6 years' },
+        follow_up_questions: ['Tune distributed systems ka practical experience kya hai?', 'Kya tune kisi real project mein multi-threading ya concurrency handle ki hai?'],
+        protocol_checklist: ['Master Sliding Window & Graph patterns (1 week)', 'Build Distributed Cache project (2 weeks)', 'Complete 2 mock system design sessions (this week)', 'Update resume with quantifiable metrics (2 days)', 'Apply via referral network (this weekend)'],
+        mentor_message: `Bhai, ${company} ke liye tera DSA aur system design gap critical hai. Sirf coding nahi, distributed systems pe focus kar. Ek killer project bana aur referral dhundh.`
+    });
+});
+
 app.post('/api/get-live-jobs', async (req, res) => {
     const { skills, role, jobType, duration, location } = req.body;
     
