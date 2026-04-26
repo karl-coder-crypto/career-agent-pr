@@ -201,6 +201,60 @@ app.post('/api/sniper-context', async (req, res) => {
     res.json({ context: `- Your ${skills.split(',')[0]?.trim()} expertise directly addresses ${company}'s need for scalable microservices.\n- Proficiency in relevant frameworks reduces onboarding time by 40%, accelerating team velocity.\n- System design knowledge aligns with ${company}'s distributed infrastructure challenges at scale.\n- Strong algorithmic foundation meets ${company}'s bar for optimal data processing pipelines.` });
 });
 
+app.post('/api/generate-outreach', async (req, res) => {
+    const { companyName, targetRole, managerName, college, githubProjects, tone, resumeContext } = req.body;
+    if (!companyName || !targetRole) return res.status(400).json({ error: 'Company and role required' });
+
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const collegeCtx = college ? `The sender studied at ${college} — use this for a junior-senior alumni rapport.` : '';
+            const projectCtx = githubProjects ? `Sender's GitHub projects: ${githubProjects}` : '';
+            const toneCtx = tone || 'Technical Pro';
+            const prompt = `You are a hyper-personalized outreach strategist. Generate a 3-message sequence for someone targeting "${targetRole}" at "${companyName}"${managerName ? ', reaching out to ' + managerName : ''}. ${collegeCtx} ${projectCtx} Resume/skills context: ${resumeContext || 'Software engineer with full-stack skills'}. Tone: ${toneCtx} (Professional Hinglish if Alumni tone selected).
+Return strict JSON: {
+  "response_probability": number (60-95, based on personalization level),
+  "message1": { "label": "Value-Addition Hook", "platform": "LinkedIn", "body": string (max 280 chars, personalized with company tech challenges) },
+  "message2": { "label": "Rapport Builder", "platform": "LinkedIn / Email", "subject": string, "body": string (3 sentences, asks expert opinion on specific technical challenge at ${companyName}) },
+  "message3": { "label": "Strategic Ask", "platform": "Email", "subject": string, "body": string (3 sentences micro-case study showing how sender's project solves ${companyName}'s known problem, ends with referral ask) },
+  "communities": [{ "name": string, "type": "Slack"|"Discord"|"Meetup"|"GDG"|"LinkedIn Group", "url": string, "why": string }] (3 real communities where ${companyName} engineers are active),
+  "blindspot_hook": string (1-2 sentences referencing ${companyName}'s niche legacy tech or community work to create emotional connection)
+}. Return ONLY valid JSON.`;
+            const result = await model.generateContent(prompt);
+            return res.json(JSON.parse(result.response.text()));
+        } catch (e) { console.error('Outreach Error:', e); }
+    }
+
+    await new Promise(r => setTimeout(r, 1200));
+    res.json({
+        response_probability: 72,
+        message1: { label: 'Value-Addition Hook', platform: 'LinkedIn', body: `Hi${managerName ? ' ' + managerName : ''}! I've been following ${companyName}'s recent work on distributed systems — your approach to scaling at 1B+ requests/day is exactly the challenge I'm working on in my current project. Would love to connect and learn from your experience as a ${targetRole.includes('Intern') ? 'future engineer' : 'fellow engineer'}.` },
+        message2: { label: 'Rapport Builder', platform: 'LinkedIn / Email', subject: `Quick question about ${companyName}'s engineering culture`, body: `I came across your profile while researching ${companyName}'s engineering blog. I've been exploring the trade-offs between event-driven and request-response architectures for a microservices project — given your work at ${companyName}, I'd love your expert opinion on how the team handles this at scale. Even a 2-minute perspective would be incredibly valuable.` },
+        message3: { label: 'Strategic Ask', platform: 'Email', subject: `${targetRole} Opportunity — Solving ${companyName}'s [Specific Problem]`, body: `I recently built a ${githubProjects ? githubProjects.split(',')[0] : 'distributed caching system'} that reduced API latency by 60% — a problem directly mirroring ${companyName}'s infra challenges I read about in your engineering blog. My background in ${resumeContext ? resumeContext.slice(0, 80) : 'full-stack systems'} aligns closely with the ${targetRole} requirements. Would you be open to referring me, or sharing any tips on standing out in ${companyName}'s hiring process?` },
+        communities: [
+            { name: `${companyName} Alumni Network`, type: 'LinkedIn Group', url: `https://www.linkedin.com/search/results/groups/?keywords=${encodeURIComponent(companyName)}`, why: `Direct access to ${companyName} engineers and alumni for warm referrals.` },
+            { name: 'GDG Local Chapter', type: 'GDG', url: 'https://gdg.community.dev/', why: `${companyName} engineers frequently mentor and speak at local GDG events.` },
+            { name: 'Tech Discord Community', type: 'Discord', url: 'https://discord.gg/programming', why: 'Active tech community where MNC engineers share advice and referrals.' }
+        ],
+        blindspot_hook: `${companyName} has a fascinating history with ${companyName === 'Google' ? 'MapReduce — the original paper still shapes distributed computing today' : 'internal tooling that shaped modern dev workflows'}. Referencing this in your outreach signals you\'ve done real research beyond the job listing.`
+    });
+});
+
+app.post('/api/networking/colleges', async (req, res) => {
+    const { state, query } = req.body;
+    if (!state || !query || query.length < 2) return res.json([]);
+    if (process.env.GEMINI_API_KEY) {
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash', generationConfig: { responseMimeType: 'application/json' } });
+            const prompt = `List real accredited colleges/universities in ${state}, India whose names start with or contain "${query}". Return a JSON array of up to 8 college name strings only. Example: ["RGPV Bhopal","Rajiv Gandhi Institute of Technology"]. Return ONLY valid JSON array.`;
+            const result = await model.generateContent(prompt);
+            return res.json(JSON.parse(result.response.text()));
+        } catch (e) { console.error('College Search Error:', e); }
+    }
+    res.json([`${query} University`, `${query} Institute of Technology`, `${query} College of Engineering`]);
+});
 
 // 6. API Endpoint: ATS Resume Analyzer
 app.post('/api/analyze-resume', async (req, res) => {
